@@ -1,0 +1,27 @@
+# Node
+node_modules/
+.pnpm-store/
+
+# Env — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+target/
+.anchor/
+test-ledger/
+
+# IDE / OS
+.DS_Store
+.idea/
+*.log
+
+# Anchor local keys (program deploy keypairs are managed via Squads, never committed)
+*.so
+keypairs/
+*-keypair.json
