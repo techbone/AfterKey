@@ -15,7 +15,7 @@ pub mod state;
 use instructions::*;
 use state::Beneficiary;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("6njwUjht6L2si9uEoPJHgYwXskMCx7P1Po5DuSYbFPvP");
 
 #[program]
 pub mod proof_of_life {

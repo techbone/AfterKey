@@ -1,9 +1,9 @@
 // Single source for cluster/program config — app code must never hardcode
-// these (repo-blueprint.md §2). Placeholder id until `anchor keys sync`.
+// these (repo-blueprint.md §2).
 
 export type Cluster = "localnet" | "devnet" | "mainnet-beta";
 
-export const PROGRAM_ID = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS";
+export const PROGRAM_ID = "6njwUjht6L2si9uEoPJHgYwXskMCx7P1Po5DuSYbFPvP";
 
 export const RPC_URLS: Record<Cluster, string> = {
   localnet: "http://127.0.0.1:8899",
