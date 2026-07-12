@@ -30,6 +30,23 @@ function stateName(s: Record<string, unknown>): VaultData["state"] {
   return Object.keys(s)[0] as VaultData["state"];
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function mapVault(publicKey: PublicKey, account: any): VaultData {
+  return {
+    address: publicKey,
+    owner: account.owner,
+    vaultId: account.vaultId,
+    state: stateName(account.state),
+    inactivityPeriod: account.inactivityPeriod,
+    challengePeriod: account.challengePeriod,
+    lastCheckin: account.lastCheckin,
+    claimInitiatedAt: account.claimInitiatedAt,
+    claimer: account.claimer,
+    beneficiaries: account.beneficiaries,
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 /** All vaults owned by the connected wallet (memcmp on owner at offset 8). */
 export function useMyVaults() {
   const { program, owner } = useProgram();
@@ -41,18 +58,29 @@ export function useMyVaults() {
       const accounts = await program.account.vault.all([
         { memcmp: { offset: 8, bytes: owner!.toBase58() } },
       ]);
-      return accounts.map(({ publicKey, account }) => ({
-        address: publicKey,
-        owner: account.owner,
-        vaultId: account.vaultId,
-        state: stateName(account.state),
-        inactivityPeriod: account.inactivityPeriod,
-        challengePeriod: account.challengePeriod,
-        lastCheckin: account.lastCheckin,
-        claimInitiatedAt: account.claimInitiatedAt,
-        claimer: account.claimer,
-        beneficiaries: account.beneficiaries,
-      }));
+      return accounts.map(({ publicKey, account }) => mapVault(publicKey, account));
+    },
+  });
+}
+
+/**
+ * Vaults naming the connected wallet as a beneficiary. Beneficiaries live in a
+ * variable-offset Vec, so we can't memcmp — we fetch all vaults and filter
+ * client-side. Fine for devnet/MVP scale; the backend indexer (Milestone 4)
+ * replaces this with a proper query.
+ */
+export function useVaultsForMe() {
+  const { program, owner } = useProgram();
+  return useQuery({
+    queryKey: ["claimable", owner?.toBase58()],
+    enabled: !!owner,
+    refetchInterval: 10_000,
+    queryFn: async (): Promise<VaultData[]> => {
+      const accounts = await program.account.vault.all();
+      return accounts
+        .map(({ publicKey, account }) => mapVault(publicKey, account))
+        .filter((v) => v.beneficiaries.some((b) => b.key.equals(owner!)))
+        .filter((v) => v.state !== "closed");
     },
   });
 }
@@ -78,6 +106,7 @@ function useVaultMutation<TArgs>(fn: (args: TArgs) => Promise<string>) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vaults"] });
       queryClient.invalidateQueries({ queryKey: ["vault-balance"] });
+      queryClient.invalidateQueries({ queryKey: ["claimable"] });
     },
   });
 }
@@ -93,6 +122,41 @@ export function useVetoClaim() {
   const { program } = useProgram();
   return useVaultMutation((vault: PublicKey) =>
     program.methods.vetoClaim().accounts({ vault }).rpc(),
+  );
+}
+
+/** Beneficiary starts a claim on a vault whose inactivity period has elapsed. */
+export function useInitiateClaim() {
+  const { program, owner } = useProgram();
+  return useVaultMutation((vault: PublicKey) =>
+    program.methods.initiateClaim().accounts({ claimer: owner!, vault }).rpc(),
+  );
+}
+
+/** Anyone can finalize once the challenge window has passed (permissionless). */
+export function useFinalizeClaim() {
+  const { program, owner } = useProgram();
+  return useVaultMutation((vault: PublicKey) =>
+    program.methods.finalizeClaim().accounts({ cranker: owner!, vault }).rpc(),
+  );
+}
+
+/**
+ * Release SOL to all beneficiaries per their shares. Permissionless; the
+ * remaining accounts MUST be the beneficiary wallets in stored order — the
+ * program validates each against on-chain state and pays each its share.
+ */
+export function useDistributeSol() {
+  const { program, owner } = useProgram();
+  return useVaultMutation(
+    ({ vault, beneficiaries }: { vault: PublicKey; beneficiaries: Beneficiary[] }) =>
+      program.methods
+        .distributeSol()
+        .accounts({ cranker: owner!, vault })
+        .remainingAccounts(
+          beneficiaries.map((b) => ({ pubkey: b.key, isSigner: false, isWritable: true })),
+        )
+        .rpc(),
   );
 }
 

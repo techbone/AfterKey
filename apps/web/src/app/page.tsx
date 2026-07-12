@@ -34,12 +34,20 @@ export default function Landing() {
         <div className="flex items-center gap-2 font-display text-lg font-bold">
           <span className="heartbeat text-pulse">●</span> Proof of Life
         </div>
-        <Link
-          href="/app"
-          className="rounded-full bg-pulse px-5 py-2 text-sm font-semibold text-[#04120b] transition hover:bg-[#2bd18c]"
-        >
-          Launch App
-        </Link>
+        <nav className="flex items-center gap-3">
+          <Link
+            href="/claim"
+            className="rounded-full border border-edge px-5 py-2 text-sm font-semibold text-snow transition hover:border-mist"
+          >
+            Claim
+          </Link>
+          <Link
+            href="/app"
+            className="rounded-full bg-pulse px-5 py-2 text-sm font-semibold text-[#04120b] transition hover:bg-[#2bd18c]"
+          >
+            Launch App
+          </Link>
+        </nav>
       </header>
 
       <section className="relative z-10 mx-auto max-w-4xl px-6 pt-24 pb-20 text-center sm:pt-32">
