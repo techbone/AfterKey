@@ -10,6 +10,9 @@
   "scripts": {
     "check:program": "cargo check --workspace",
     "build:program": "anchor build",
+    "build:devnet": "anchor build -- --features devnet-timing",
+    "deploy:devnet": "npm run build:devnet && anchor deploy --provider.cluster devnet",
+    "pretest": "anchor build",
     "test": "tsx --test tests/*.test.ts",
     "test:program": "anchor test"
   },

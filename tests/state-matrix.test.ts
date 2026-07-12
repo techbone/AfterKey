@@ -421,6 +421,56 @@ test("timing boundaries (strict > semantics)", async (t) => {
   });
 });
 
+test("close_released_vault", async (t) => {
+  const w = await newWorld();
+
+  await t.test("cannot close a released vault that still holds SOL", async () => {
+    const v = await createVault(w, { depositSol: DEPOSIT });
+    await toReleased(w, v);
+    await expectError(
+      w.program.methods
+        .closeReleasedVault()
+        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .signers([w.stranger])
+        .rpc(),
+      "VaultNotEmpty",
+    );
+  });
+
+  await t.test("after distribution, anyone closes it; account is gone", async () => {
+    const v = await createVault(w, { depositSol: DEPOSIT });
+    await toReleased(w, v);
+    await w.program.methods
+      .distributeSol()
+      .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+      .remainingAccounts([
+        { pubkey: w.heirA.publicKey, isSigner: false, isWritable: true },
+        { pubkey: w.heirB.publicKey, isSigner: false, isWritable: true },
+      ])
+      .signers([w.stranger])
+      .rpc();
+    warp(w, 1);
+    await w.program.methods
+      .closeReleasedVault()
+      .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+      .signers([w.stranger])
+      .rpc();
+    await assert.rejects(fetchVault(w, v)); // account deallocated
+  });
+
+  await t.test("cannot close an active vault", async () => {
+    const v = await createVault(w);
+    await expectError(
+      w.program.methods
+        .closeReleasedVault()
+        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .signers([w.stranger])
+        .rpc(),
+      "WrongState",
+    );
+  });
+});
+
 test("distribute_sol adversarial", async (t) => {
   const w = await newWorld();
 

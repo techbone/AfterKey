@@ -103,6 +103,10 @@ pub mod proof_of_life {
         instructions::close_vault::close_vault_handler(ctx)
     }
 
+    pub fn close_released_vault(ctx: Context<CloseReleasedVault>) -> Result<()> {
+        instructions::close_released_vault::close_released_vault_handler(ctx)
+    }
+
     pub fn update_admin_config(
         ctx: Context<UpdateAdminConfig>,
         paused: Option<bool>,

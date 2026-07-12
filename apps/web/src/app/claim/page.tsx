@@ -6,7 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "@/components/wallet-button";
 import { Countdown } from "@/components/countdown";
 import {
-  useDistributeSol,
+  useReceiveInheritance,
   useFinalizeClaim,
   useInitiateClaim,
   useVaultsForMe,
@@ -43,14 +43,14 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
   const { data: balance } = useVaultBalance(vault.address);
   const initiate = useInitiateClaim();
   const finalize = useFinalizeClaim();
-  const distribute = useDistributeSol();
+  const receive = useReceiveInheritance();
 
   const myShare = vault.beneficiaries.find((b) => b.key.toBase58() === me);
   const claimableAt = vault.lastCheckin.toNumber() + vault.inactivityPeriod.toNumber();
   const challengeEndsAt =
     vault.claimInitiatedAt.toNumber() + vault.challengePeriod.toNumber();
-  const busy = initiate.isPending || finalize.isPending || distribute.isPending;
-  const err = initiate.error ?? finalize.error ?? distribute.error ?? null;
+  const busy = initiate.isPending || finalize.isPending || receive.isPending;
+  const err = initiate.error ?? finalize.error ?? receive.error ?? null;
 
   return (
     <div className="rounded-3xl border border-edge bg-surface p-8">
@@ -140,21 +140,26 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
         </div>
       )}
 
-      {/* State 5: released → distribute */}
+      {/* State 5: released → distribute (or finish, if already drained) */}
       {vault.state === "released" && (
         <div className="mt-8">
           <p className="text-sm text-mist">
-            This inheritance is ready. Releasing sends every beneficiary their share in a single
-            transaction — including yours.
+            {(balance ?? 0) > 0
+              ? "This inheritance is ready. Releasing sends every beneficiary their share in a single transaction — including yours — and closes the vault."
+              : "This inheritance was already released. Finish closing the vault to clear it from your list (its rent is refunded to you)."}
           </p>
           <button
             onClick={() =>
-              distribute.mutate({ vault: vault.address, beneficiaries: vault.beneficiaries })
+              receive.mutate({
+                vault: vault.address,
+                beneficiaries: vault.beneficiaries,
+                hasBalance: (balance ?? 0) > 0,
+              })
             }
             disabled={busy}
             className="mt-6 w-full rounded-2xl bg-pulse py-4 font-display text-xl font-bold text-[#04120b] transition hover:bg-[#2bd18c] disabled:opacity-50"
           >
-            {distribute.isPending ? "Signing…" : "Receive inheritance"}
+            {receive.isPending ? "Signing…" : (balance ?? 0) > 0 ? "Receive inheritance" : "Finish & clear"}
           </button>
         </div>
       )}

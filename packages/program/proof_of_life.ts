@@ -41,6 +41,57 @@ export type ProofOfLife = {
       "args": []
     },
     {
+      "name": "closeReleasedVault",
+      "discriminator": [
+        5,
+        185,
+        171,
+        67,
+        38,
+        118,
+        188,
+        80
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "solEscrow",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  95,
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "closeVault",
       "discriminator": [
         141,

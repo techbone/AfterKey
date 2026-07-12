@@ -142,21 +142,41 @@ export function useFinalizeClaim() {
 }
 
 /**
- * Release SOL to all beneficiaries per their shares. Permissionless; the
- * remaining accounts MUST be the beneficiary wallets in stored order — the
- * program validates each against on-chain state and pays each its share.
+ * Receive an inheritance: release SOL to all beneficiaries per their shares,
+ * then finish the vault so its lifecycle completes (state → closed) and it
+ * stops appearing as claimable. Permissionless. The remaining accounts MUST be
+ * the beneficiary wallets in stored order — the program validates each against
+ * on-chain state and pays each its share.
+ *
+ * `hasBalance` lets us skip the distribute transaction (and its signature) for
+ * an already-drained vault — e.g. finishing one that was distributed earlier.
  */
-export function useDistributeSol() {
+export function useReceiveInheritance() {
   const { program, owner } = useProgram();
   return useVaultMutation(
-    ({ vault, beneficiaries }: { vault: PublicKey; beneficiaries: Beneficiary[] }) =>
-      program.methods
-        .distributeSol()
+    async ({
+      vault,
+      beneficiaries,
+      hasBalance,
+    }: {
+      vault: PublicKey;
+      beneficiaries: Beneficiary[];
+      hasBalance: boolean;
+    }) => {
+      if (hasBalance) {
+        await program.methods
+          .distributeSol()
+          .accounts({ cranker: owner!, vault })
+          .remainingAccounts(
+            beneficiaries.map((b) => ({ pubkey: b.key, isSigner: false, isWritable: true })),
+          )
+          .rpc();
+      }
+      return program.methods
+        .closeReleasedVault()
         .accounts({ cranker: owner!, vault })
-        .remainingAccounts(
-          beneficiaries.map((b) => ({ pubkey: b.key, isSigner: false, isWritable: true })),
-        )
-        .rpc(),
+        .rpc();
+    },
   );
 }
 

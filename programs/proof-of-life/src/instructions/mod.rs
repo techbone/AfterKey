@@ -1,4 +1,5 @@
 pub mod check_in;
+pub mod close_released_vault;
 pub mod close_vault;
 pub mod deposit_sol;
 pub mod deposit_token;
@@ -19,6 +20,7 @@ pub mod withdraw_token;
 // __client_accounts_* / __cpi_client_accounts_* modules in scope at the crate
 // root. Handlers are named uniquely (<ix>_handler) so the globs don't collide.
 pub use check_in::*;
+pub use close_released_vault::*;
 pub use close_vault::*;
 pub use deposit_sol::*;
 pub use deposit_token::*;

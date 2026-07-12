@@ -168,7 +168,7 @@ export default function NewVault() {
 
             <section>
               <h2 className="text-xs font-semibold tracking-wide text-mist uppercase">
-                4 · Initial deposit (optional)
+                4 · Fund it
               </h2>
               <div className="relative mt-3 w-44">
                 <input
@@ -181,6 +181,11 @@ export default function NewVault() {
                   SOL
                 </span>
               </div>
+              <p className="mt-2 text-xs text-mist">
+                {Number(deposit) > 0
+                  ? "Deposited now. You can add more or withdraw anytime — you keep full control."
+                  : "You can leave this at 0 and fund the vault later from your dashboard — even from a different wallet. The vault still locks in your beneficiaries and timer."}
+              </p>
             </section>
 
             <section className="rounded-2xl border border-edge bg-surface p-6 text-sm leading-relaxed text-mist">

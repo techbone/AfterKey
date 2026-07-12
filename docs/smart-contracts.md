@@ -84,6 +84,7 @@ Liveness rule: **every owner-signed instruction on the vault sets `last_checkin 
 | 9 | `distribute_token(mint)` | **anyone** | Released | remaining_accounts = beneficiary ATAs in stored order; pay each `floor(balance × share/10_000)`, dust to last; close vault ATA when empty (rent → owner) |
 | 10 | `distribute_sol()` | **anyone** | Released | same over sol_escrow lamports |
 | 11 | `close_vault()` | owner | Active, all balances zero | Close Vault + escrow, rent → owner; state → Closed |
+| 11b | `close_released_vault()` | **anyone** | Released, sol_escrow empty | Completes the lifecycle after distribution: closes the Vault account, rent → cranker. Empty-escrow guard prevents stranding SOL; token-ATA-empty guard is a pre-mainnet TODO (UI distributes all mints first). |
 | 12 | `update_admin_config(...)` | config.admin (multisig) | — | Adjust minimums / pause flag / admin handover. Cannot touch any Vault fields |
 
 Distribution notes: 10 SPL transfers + ATA validations fit comfortably in one transaction (~10×~6k CU for transfers plus overhead, well under the 1.4M CU cap; request compute budget explicitly anyway). Beneficiary ATAs are created idempotently by the cranker/claimer (`create_associated_token_account_idempotent`), payer = caller. If a beneficiary ATA is frozen/uncreatable for some mint, `distribute_token` for *that mint* fails as a whole — acceptable at MVP (retryable; funds never stuck for other mints); post-MVP: per-beneficiary claim-pull as fallback.
