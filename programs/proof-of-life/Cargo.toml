@@ -15,10 +15,11 @@ cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-idl-build = ["anchor-lang/idl-build"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 # Short minimum periods for local/devnet demos. MUST NEVER be in a mainnet
 # build — CI asserts its absence (repo-blueprint.md §3, architecture.md §5).
 devnet-timing = []
 
 [dependencies]
-anchor-lang = "0.31.1"
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+anchor-spl = "0.31.1"

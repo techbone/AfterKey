@@ -93,7 +93,9 @@ pub mod proof_of_life {
         instructions::distribute_sol::distribute_sol_handler(ctx)
     }
 
-    pub fn distribute_token(ctx: Context<DistributeToken>) -> Result<()> {
+    pub fn distribute_token<'info>(
+        ctx: Context<'_, '_, 'info, 'info, DistributeToken<'info>>,
+    ) -> Result<()> {
         instructions::distribute_token::distribute_token_handler(ctx)
     }
 
