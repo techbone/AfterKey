@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #07070c;
+  --color-surface: #0e0e16;
+  --color-edge: #1d1d2b;
+  --color-mist: #8b8b9e;
+  --color-snow: #f2f2f7;
+  --color-pulse: #34e89e;
+  --color-pulse-dim: #1a7a56;
+  --color-danger: #ff5d5d;
+  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-snow);
+  font-family: var(--font-body);
+}
+
+/* heartbeat glow behind hero */
+.pulse-glow {
+  background: radial-gradient(
+    ellipse 60% 45% at 50% 38%,
+    rgba(52, 232, 158, 0.14),
+    transparent 70%
+  );
+}
+
+@keyframes heartbeat {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.heartbeat { animation: heartbeat 2.4s ease-in-out infinite; }
+
+/* wallet-adapter button, restyled to match */
+.wallet-adapter-button-trigger {
+  background: var(--color-pulse) !important;
+  color: #04120b !important;
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  height: 42px !important;
+  font-size: 14px !important;
+}
+.wallet-adapter-button-trigger:hover {
+  background: #2bd18c !important;
+}
