@@ -6,7 +6,7 @@ Assumes start Monday of Week 1. Team: Rust engineer (RE), full-stack engineer (F
 
 **Week 1**
 - RE: LiteSVM clock-warp spike; 10-way distribution CU test; deploy+upgrade a hello program through a fresh Squads 2-of-3.
-- FE: monorepo scaffold per repo-blueprint.md (pnpm workspaces, CI skeleton, Vercel + Fly projects, Supabase instance); Helius webhook round-trip spike.
+- FE: monorepo scaffold per repo-blueprint.md (npm workspaces, CI skeleton, Vercel + Fly projects, Supabase instance); Helius webhook round-trip spike.
 - F: finalize docs (this folder); recruit 2 external design-review readers for smart-contracts.md; open Colosseum/grant calendars (grant-strategy.md); start beta-tester list (target 100 names by week 6).
 - **Gate (Day 7):** go/no-go on program design. Any change → 1-day re-review, not silent drift.
 

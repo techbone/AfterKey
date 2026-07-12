@@ -5,7 +5,7 @@
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | **Next.js 15 (App Router) on Vercel** | One deploy serves the SEO-critical marketing/content site ("what happens to crypto when you die" is a real search-acquisition channel) and the app. Vite+SPA rejected: we'd immediately need a second host for marketing pages and lose SSG/metadata for content. Wallet-heavy routes are client components — App Router doesn't fight that. |
-| Language/tooling | TypeScript strict, pnpm, Biome (lint+format) | Speed, one config, monorepo-friendly |
+| Language/tooling | TypeScript strict, npm workspaces, Biome (lint+format) | Speed, one config, nothing extra to install |
 | Wallet | **`@solana/wallet-adapter`** (Phantom, Solflare, Backpack, Ledger) | Ecosystem standard; Ledger explicitly tested — our target users hold serious money on hardware wallets |
 | Chain client | **Anchor TS client generated from IDL** + `@solana/web3.js` | Typed instructions for free; IDL is committed and versioned with the program |
 | Server/chain state | **TanStack Query** | The chain is a remote cache problem: poll vault accounts (30s), invalidate on tx confirmation, retry/stale handling built in. All chain reads live behind query hooks. |

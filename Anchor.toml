@@ -1,0 +1,22 @@
+[toolchain]
+anchor_version = "0.31.1"
+
+[features]
+resolution = true
+skip-lint = false
+
+# Placeholder id — run `anchor keys sync` after the first `anchor build`
+# to replace with the real program keypair's pubkey (see repo-blueprint.md §3:
+# deploy keys are managed via Squads, never committed).
+[programs.localnet]
+proof_of_life = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+
+[programs.devnet]
+proof_of_life = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npx tsx --test tests/**/*.test.ts"

@@ -1,0 +1,24 @@
+[package]
+name = "proof-of-life"
+version = "0.1.0"
+edition = "2021"
+description = "Proof of Life — non-custodial crypto inheritance protocol"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "proof_of_life"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+# Short minimum periods for local/devnet demos. MUST NEVER be in a mainnet
+# build — CI asserts its absence (repo-blueprint.md §3, architecture.md §5).
+devnet-timing = []
+
+[dependencies]
+anchor-lang = "0.31.1"

@@ -2,7 +2,7 @@
 
 Monorepo layout, CI/CD, environments, and developer workflow. Goal: any engineer or AI agent can clone, run one command, and have the full stack locally.
 
-## 1. Monorepo layout (pnpm workspaces + Anchor workspace)
+## 1. Monorepo layout (npm workspaces + Anchor workspace)
 
 ```
 afterkey/
@@ -21,11 +21,11 @@ afterkey/
 ├── scripts/                   # deploy-devnet.ts, demo-lifecycle.ts (hackathon demo), reindex.ts
 ├── .github/workflows/         # ci.yml, deploy-web.yml, deploy-api.yml, program-release.yml
 ├── journal/                   # daily written standups (sprint-plan.md cadence)
-├── Anchor.toml · Cargo.toml · pnpm-workspace.yaml · biome.json · .env.example
+├── Anchor.toml · Cargo.toml · package.json (npm workspaces) · biome.json · .env.example
 └── SECURITY.md                # disclosure policy + security.txt contents
 ```
 
-Toolchain pins: Rust + Solana CLI + Anchor versions in `rust-toolchain.toml` / `Anchor.toml`; Node via `.nvmrc`; pnpm via `packageManager`. `pnpm setup:local` = install, spin `solana-test-validator`, deploy program with `devnet-timing`, seed a demo vault, start api+web.
+Toolchain pins: Rust + Solana CLI + Anchor versions in `rust-toolchain.toml` / `Anchor.toml`; Node via `.nvmrc` (npm ships with Node — no extra package manager to install). `npm run setup:local` = install, spin `solana-test-validator`, deploy program with `devnet-timing`, seed a demo vault, start api+web.
 
 ## 2. Environments & config
 
