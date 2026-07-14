@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "@/components/wallet-button";
 import { Countdown } from "@/components/countdown";
 import {
+  useCancelVault,
   useCheckIn,
   useDepositSol,
   useMyVaults,
@@ -36,14 +37,22 @@ function VaultCard({ vault }: { vault: VaultData }) {
   const veto = useVetoClaim();
   const deposit = useDepositSol();
   const withdraw = useWithdrawSol();
+  const cancel = useCancelVault();
   const [amount, setAmount] = useState("");
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const deadline = vault.lastCheckin.toNumber() + vault.inactivityPeriod.toNumber();
   const challengeEnds =
     vault.claimInitiatedAt.toNumber() + vault.challengePeriod.toNumber();
-  const busy = checkIn.isPending || veto.isPending || deposit.isPending || withdraw.isPending;
+  const busy =
+    checkIn.isPending ||
+    veto.isPending ||
+    deposit.isPending ||
+    withdraw.isPending ||
+    cancel.isPending;
   const err =
-    checkIn.error ?? veto.error ?? deposit.error ?? withdraw.error ?? null;
+    checkIn.error ?? veto.error ?? deposit.error ?? withdraw.error ?? cancel.error ?? null;
+  const canCancel = vault.state === "active" || vault.state === "inChallenge";
 
   return (
     <div className="rounded-3xl border border-edge bg-surface p-8 sm:p-10">
@@ -141,6 +150,51 @@ function VaultCard({ vault }: { vault: VaultData }) {
           ))}
         </ul>
       </div>
+
+      {canCancel && (
+        <div className="mt-8 border-t border-edge pt-6">
+          {!confirmingCancel ? (
+            <button
+              onClick={() => setConfirmingCancel(true)}
+              className="text-xs font-semibold tracking-wide text-mist uppercase transition hover:text-danger"
+            >
+              Cancel this vault
+            </button>
+          ) : (
+            <div className="rounded-2xl border border-danger/40 bg-danger/10 p-5">
+              <p className="text-sm text-mist">
+                This withdraws everything back to your wallet and permanently deletes this
+                vault. No beneficiary will ever be able to claim from it again
+                {vault.state === "inChallenge"
+                  ? ` — including ${shortKey(vault.claimer)}, whose claim is in progress`
+                  : ""}
+                . <span className="font-semibold text-snow">This cannot be undone.</span>
+              </p>
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={() =>
+                    cancel.mutate(
+                      { vault: vault.address, balanceSol: balance ?? 0 },
+                      { onSettled: () => setConfirmingCancel(false) },
+                    )
+                  }
+                  disabled={busy}
+                  className="rounded-xl bg-danger px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-400 disabled:opacity-50"
+                >
+                  {cancel.isPending ? "Signing…" : "Yes, cancel and withdraw everything"}
+                </button>
+                <button
+                  onClick={() => setConfirmingCancel(false)}
+                  disabled={busy}
+                  className="rounded-xl border border-edge px-5 py-2.5 text-sm font-semibold transition hover:border-mist"
+                >
+                  Keep vault
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {err && (
         <p className="mt-4 text-sm break-all text-danger">

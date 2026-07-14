@@ -200,6 +200,28 @@ export function useWithdrawSol() {
   );
 }
 
+/**
+ * Owner shuts the vault down entirely: withdraw every lamport (this
+ * auto-vetoes if a claim is mid-challenge — one signature covers both), then
+ * close the account. Afterward no beneficiary can ever claim against it
+ * again; there's nothing left to veto. Irreversible — the UI must confirm
+ * before calling this.
+ */
+export function useCancelVault() {
+  const { program } = useProgram();
+  return useVaultMutation(
+    async ({ vault, balanceSol }: { vault: PublicKey; balanceSol: number }) => {
+      if (balanceSol > 0) {
+        await program.methods
+          .withdrawSol(new BN(Math.round(balanceSol * LAMPORTS_PER_SOL)))
+          .accounts({ vault })
+          .rpc();
+      }
+      return program.methods.closeVault().accounts({ vault }).rpc();
+    },
+  );
+}
+
 export function useCreateVault() {
   const { program, owner } = useProgram();
   const queryClient = useQueryClient();
