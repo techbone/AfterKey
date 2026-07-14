@@ -10,7 +10,7 @@ export type ProofOfLife = {
     "name": "proofOfLife",
     "version": "0.1.0",
     "spec": "0.1.0",
-    "description": "Proof of Life — non-custodial crypto inheritance protocol"
+    "description": "AfterKey — non-custodial crypto inheritance protocol"
   },
   "instructions": [
     {

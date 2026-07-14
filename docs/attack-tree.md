@@ -1,4 +1,4 @@
-# Attack Tree — Proof of Life
+# Attack Tree — AfterKey
 
 Formal enumeration of paths to each adversary goal. Notation: **OR** children = any path suffices; **AND** children = all required. Each leaf is tagged `[likelihood/impact]` (L/M/H) and cross-referenced to mitigations in [security.md](security.md).
 
@@ -8,7 +8,7 @@ Formal enumeration of paths to each adversary goal. Notation: **OR** children = 
 G1. Extract assets while owner is alive and unwilling
 ├── OR 1.1 Compromise the owner's key                      [M/H]
 │   ├── OR 1.1.1 Phishing owner into signing withdraw/update_config  [M/H]
-│   │   ├── 1.1.1.a Fake "Proof of Life" emails with tx links   → mitig: no links in emails, DKIM/DMARC (sec §3.6)
+│   │   ├── 1.1.1.a Fake "AfterKey" emails with tx links   → mitig: no links in emails, DKIM/DMARC (sec §3.6)
 │   │   ├── 1.1.1.b Compromised frontend builds malicious tx    → mitig: CI supply-chain checks, CSP, wallet simulation
 │   │   └── 1.1.1.c Fake support / Discord DMs                  → mitig: comms policy, in-app warnings
 │   ├── 1.1.2 Malware/seed theft (generic wallet compromise)    [M/H] → out of protocol scope; hardware-wallet guidance

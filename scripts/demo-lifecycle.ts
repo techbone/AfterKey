@@ -53,7 +53,7 @@ async function main() {
   const heirA = Keypair.generate(); // spouse — 60%
   const heirB = Keypair.generate(); // child — 40%
 
-  console.log("═══ Proof of Life — live devnet demo ═══");
+  console.log("═══ AfterKey — live devnet demo ═══");
   console.log(`program:  ${programId.toBase58()}`);
   console.log(`owner:    ${ownerKp.publicKey.toBase58()}`);
   console.log(`heir A:   ${heirA.publicKey.toBase58()} (60%)`);

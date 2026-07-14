@@ -1,4 +1,4 @@
-# Brutal Critique & Hard Questions — Proof of Life
+# Brutal Critique & Hard Questions — AfterKey
 
 Written as three hostile reviewers: a Solana VC, a Solana Foundation grant reviewer, and a hackathon judge. Every objection stated at full strength, then our current best answer and its honest grade (A = solid, B = defensible, C = real weakness we're carrying).
 

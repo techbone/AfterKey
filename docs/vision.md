@@ -68,4 +68,4 @@ We explicitly reject: custody fees, token launches as a business model, and sell
 
 ## Naming note
 
-Repo codename: **AfterKey**. Public product name: **Proof of Life**. Both are placeholders until trademark screening; all documents use Proof of Life.
+**AfterKey** is the name — repo, product, and brand. (An earlier placeholder name, "Proof of Life," was used in the first draft of these docs and has been fully retired.) Still subject to trademark screening before a public launch.

@@ -1,4 +1,4 @@
-# System Architecture — Proof of Life
+# System Architecture — AfterKey
 
 ## 1. Architecture at a glance
 

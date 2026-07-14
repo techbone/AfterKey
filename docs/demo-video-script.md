@@ -1,4 +1,4 @@
-# Demo Video Script — Proof of Life
+# Demo Video Script — AfterKey
 
 Target: 2:30–3:00, 1080p, 16:9. Built around the actual devnet-timing app (2-min/1-min presets) so nothing here is faked.
 
@@ -36,7 +36,7 @@ Caption: *"Wills can't sign transactions. Sharing your seed phrase is a loaded g
 
 **0:20–0:35 — Connect + create**
 Screen: click "Launch App" → connect **Owner** wallet → click "+ New vault".
-Caption: *"Proof of Life: a non-custodial dead-man's switch on Solana."*
+Caption: *"AfterKey: a non-custodial dead-man's switch on Solana."*
 
 **0:35–1:00 — The wizard**
 Screen: pick "2 minutes (demo)" inactivity, "1 minute (demo)" challenge, paste the **Heir** wallet address at 100%, set deposit to 0.1 SOL. Let the plain-language summary box sit on screen for a beat — it's a strong visual proof point.
@@ -77,7 +77,7 @@ Voiceover (optional, this is the line to say out loud if you say anything): *"No
 Screen: static frame — logo, one line, one link.
 Text on screen:
 ```
-Proof of Life
+AfterKey
 Crypto inheritance, without sharing your keys.
 Live on Solana devnet — try it: [your vercel URL]
 ```

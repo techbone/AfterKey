@@ -1,8 +1,8 @@
-# Grant Strategy & Solana Ecosystem Positioning — Proof of Life
+# Grant Strategy & Solana Ecosystem Positioning — AfterKey
 
 ## 1. Positioning statement
 
-**"Solana's inheritance layer."** Proof of Life is public-goods-adjacent consumer security infrastructure: it directly addresses self-custody's scariest failure mode, makes holding on Solana safer for ordinary users, and (via SDK/CPI later) becomes a primitive other Solana products embed. This is the exact profile ecosystem funders exist to support: clear user harm being solved, non-custodial, non-speculative, no token, composable.
+**"Solana's inheritance layer."** AfterKey is public-goods-adjacent consumer security infrastructure: it directly addresses self-custody's scariest failure mode, makes holding on Solana safer for ordinary users, and (via SDK/CPI later) becomes a primitive other Solana products embed. This is the exact profile ecosystem funders exist to support: clear user harm being solved, non-custodial, non-speculative, no token, composable.
 
 ## 2. Why funders should care (the three arguments)
 

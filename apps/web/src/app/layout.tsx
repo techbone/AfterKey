@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 export const metadata: Metadata = {
-  title: "Proof of Life — crypto inheritance without sharing keys",
+  title: "AfterKey — crypto inheritance without sharing keys",
   description:
     "A non-custodial dead-man's switch on Solana. If you go silent, and ignore every warning, your assets pass to the people you chose. One signature proves you're alive.",
 };

@@ -1,6 +1,6 @@
-# Proof of Life — Documentation Index
+# AfterKey — Documentation Index
 
-Proof of Life is a non-custodial crypto inheritance protocol on Solana. Owners keep full control of their assets; beneficiaries can claim only after a configurable inactivity period plus an on-chain challenge window during which the owner can veto with a single signature.
+AfterKey is a non-custodial crypto inheritance protocol on Solana. Owners keep full control of their assets; beneficiaries can claim only after a configurable inactivity period plus an on-chain challenge window during which the owner can veto with a single signature.
 
 This `/docs` folder is the operating system of the company. Every document is written so a new engineer — or an AI agent — can continue building without any other context.
 
@@ -39,4 +39,4 @@ These decisions are fixed for the MVP. If a document contradicts this list, this
 - **Frontend:** Next.js (App Router) on Vercel, `@solana/wallet-adapter`, TanStack Query, Zustand, Tailwind + shadcn/ui. Sign-In-With-Solana for the (optional) notification account.
 - **Upgrades:** Program upgrade authority held by a Squads multisig during beta; freeze or move to governance after audit + stability period.
 - **Fees:** Zero protocol fees at MVP. Monetization decisions deferred (see vision.md).
-- **Working name:** Repo/codename is `AfterKey`; product name is **Proof of Life**.
+- **Name:** **AfterKey** — repo, product, and brand all use one name. (Earlier drafts of these docs used a placeholder codename, "Proof of Life," before the product name was finalized; that name has been fully retired.)

@@ -1,4 +1,4 @@
-# Product Requirements Document — Proof of Life MVP
+# Product Requirements Document — AfterKey MVP
 
 **Status:** Draft v1 · **Owner:** Founder · **Target:** Working Solana MVP in 6–8 weeks
 

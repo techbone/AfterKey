@@ -32,7 +32,7 @@ export default function Landing() {
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="heartbeat text-pulse">●</span> Proof of Life
+          <span className="heartbeat text-pulse">●</span> AfterKey
         </div>
         <nav className="flex items-center gap-3">
           <Link
@@ -58,7 +58,7 @@ export default function Landing() {
         </h1>
         <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-mist">
           Billions in crypto are already lost forever to death without key handover. Wills can&apos;t
-          sign transactions. Sharing your seed phrase is a loaded gun. Proof of Life is a
+          sign transactions. Sharing your seed phrase is a loaded gun. AfterKey is a
           non-custodial dead-man&apos;s switch on Solana — your assets pass to the people you chose,
           without anyone ever touching your keys.
         </p>
@@ -113,7 +113,7 @@ export default function Landing() {
       <footer className="relative z-10 mx-auto max-w-6xl border-t border-edge px-6 py-10 text-sm text-mist">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <span>
-            <span className="heartbeat text-pulse">●</span> Proof of Life — inheritance,
+            <span className="heartbeat text-pulse">●</span> AfterKey — inheritance,
             without the key handover.
           </span>
           <a

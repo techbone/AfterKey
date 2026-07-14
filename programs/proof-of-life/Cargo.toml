@@ -2,7 +2,7 @@
 name = "proof-of-life"
 version = "0.1.0"
 edition = "2021"
-description = "Proof of Life — non-custodial crypto inheritance protocol"
+description = "AfterKey — non-custodial crypto inheritance protocol"
 license = "Apache-2.0"
 
 [lib]

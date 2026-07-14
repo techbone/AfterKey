@@ -22,7 +22,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
         <Link href="/" className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="heartbeat text-pulse">●</span> Proof of Life
+          <span className="heartbeat text-pulse">●</span> AfterKey
         </Link>
         <WalletButton />
       </header>

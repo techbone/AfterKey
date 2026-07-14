@@ -1,4 +1,4 @@
-# Backend Architecture — Proof of Life
+# Backend Architecture — AfterKey
 
 ## 1. Do we need a backend? Yes — but only for what the chain can't do
 

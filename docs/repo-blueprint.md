@@ -1,4 +1,4 @@
-# Repository Blueprint — Proof of Life
+# Repository Blueprint — AfterKey
 
 Monorepo layout, CI/CD, environments, and developer workflow. Goal: any engineer or AI agent can clone, run one command, and have the full stack locally.
 

@@ -1,4 +1,4 @@
-# Development Roadmap — Proof of Life
+# Development Roadmap — AfterKey
 
 Team assumption: **2 engineers** (1 Rust/Anchor-capable, 1 full-stack TS) + founder doing PM/design/BD. Effort figures = calendar weeks at that staffing. Target: mainnet-capable MVP in **8 weeks**, public launch after audit (~week 12–14). See [sprint-plan.md](sprint-plan.md) for the day-level 90-day version.
 

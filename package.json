@@ -2,7 +2,7 @@
   "name": "afterkey",
   "private": true,
   "version": "0.0.0",
-  "description": "Proof of Life — non-custodial crypto inheritance protocol on Solana",
+  "description": "AfterKey — non-custodial crypto inheritance protocol on Solana",
   "workspaces": [
     "apps/*",
     "packages/*"

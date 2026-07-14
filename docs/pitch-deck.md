@@ -1,11 +1,11 @@
-# Pitch Deck — Proof of Life
+# Pitch Deck — AfterKey
 
 Slide-by-slide narrative with speaker notes. Target: 3-minute hackathon pitch / 10-minute VC version (extended notes marked ⏱).
 
 ---
 
 ## 1 · Title
-**Proof of Life** — Crypto inheritance without giving anyone your keys.
+**AfterKey** — Crypto inheritance without giving anyone your keys.
 *Speaker note:* Open with the question, not the product: **"If you died tonight, what happens to your SOL?"** Pause. Every person in the room has no good answer. That silence is the pitch.
 
 ## 2 · Problem

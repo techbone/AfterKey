@@ -1,4 +1,4 @@
-# Security Model & Threat Analysis — Proof of Life
+# Security Model & Threat Analysis — AfterKey
 
 Companion: [attack-tree.md](attack-tree.md) (formal tree). This document explains the model, ranks the threats, and states mitigations and accepted residual risks.
 
@@ -51,7 +51,7 @@ Clock sysvar drift is bounded by validator consensus (minutes at worst) vs. wind
 - **Admin abuse:** `paused` intentionally cannot block check-ins, vetoes, withdrawals, or claim finalization (smart-contracts.md §4.1) — a hostile admin can only stop *new* vaults/deposits.
 - **Classic Solana bugs:** missing signer/owner checks, account substitution, arbitrary CPI, math overflow — addressed by Anchor constraints, `checked_*` everywhere, the adversarial test matrix, and audit focus areas listed in §5.
 - **Frontend supply chain:** a hijacked frontend can craft malicious txs for users to sign (e.g. `update_config` swapping beneficiaries to attacker keys). Mitigations: dependency pinning + lockfile audit in CI, CSP, and human-readable transaction summaries so wallet simulation shows sensible effects. Residual risk shared with all dApps.
-- **Social engineering:** "Proof of Life support" phishing asking owners to sign things, or fake claim-notification emails with lookalike links. Mitigations: signed email domain (DKIM/DMARC/BIMI), an explicit product rule communicated repeatedly — *we will never ask you to sign anything from an email link; always type the URL* — and notification emails containing no transaction links at all, only instructions to visit the app directly.
+- **Social engineering:** "AfterKey support" phishing asking owners to sign things, or fake claim-notification emails with lookalike links. Mitigations: signed email domain (DKIM/DMARC/BIMI), an explicit product rule communicated repeatedly — *we will never ask you to sign anything from an email link; always type the URL* — and notification emails containing no transaction links at all, only instructions to visit the app directly.
 
 ## 4. Privacy (accepted MVP trade-off)
 

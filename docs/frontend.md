@@ -1,4 +1,4 @@
-# Frontend Architecture — Proof of Life
+# Frontend Architecture — AfterKey
 
 ## 1. Stack decisions & rationale
 
