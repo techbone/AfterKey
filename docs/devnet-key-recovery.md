@@ -31,7 +31,7 @@ npm run deploy:devnet -- deploy "/path/to/program.enc.json"
 npm run check:deploy
 ```
 
-The faucet may reject or rate-limit requests. Fund the public authority with **test SOL** through the official faucet or an existing devnet wallet; private keys are not needed to receive funds. The deploy command checks the public IDL address, signing authority and balance first. The binary must have been built and verified for the intended program ID and devnet timing before calling deploy.
+The faucet may reject or rate-limit requests. Fund the public authority with **test SOL** through the official faucet or an existing devnet wallet; private keys are not needed to receive funds. The deploy command checks the public IDL address, signing authority and balance first, accounting for rent already funded in a resumable upload buffer. It uploads only missing chunks through RPC, at most one transaction start per second, with confirmation and limited backoff for transient interruptions. The loader-v3 instruction encoding is exercised in LiteSVM, including wrong-authority rejection. Buffer byte parity is checked before the official CLI sends the final deployment transaction. The binary must have been built and verified for the intended program ID and devnet timing before calling deploy.
 
 During signing, the helper unlocks keys into temporary files readable only by the current user. It removes those files after completion and handled termination. The encrypted upload-buffer key remains available if a deployment fails and needs resuming. A forced kill or machine crash can interrupt cleanup; do not treat temporary signing files as backups.
 

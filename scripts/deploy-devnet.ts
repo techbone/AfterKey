@@ -8,6 +8,7 @@ import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transa
 import BN from "bn.js";
 import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 import { withDeploymentKeys } from "./devnet-keystore.ts";
+import { uploadProgramBuffer } from "./lib/program-upload.ts";
 import { cancelVaultTransaction, createVaultTransaction, vaultAddresses } from "../apps/web/src/lib/vault-transactions.ts";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -58,20 +59,23 @@ async function main() {
       if (!data || data.data[12] !== 1 || !new PublicKey(data.data.subarray(13, 45)).equals(authority)) throw new Error("Signing wallet is not the existing upgrade authority.");
     }
     // Buffer rent is recycled into ProgramData during the final deployment.
+    const bufferBalance = await connection.getBalance(new PublicKey(addresses.buffer));
     const minimum = (existing ? 0 : await connection.getMinimumBalanceForRentExemption(36))
-      + await connection.getMinimumBalanceForRentExemption(bytes.length + 45) + 50_000_000;
+      + Math.max(0, await connection.getMinimumBalanceForRentExemption(bytes.length + 45) - bufferBalance) + 50_000_000;
     const balance = await connection.getBalance(authority);
     if (balance < minimum) throw new Error(`Fund authority ${addresses.authority} with at least ${(minimum / LAMPORTS_PER_SOL).toFixed(3)} devnet SOL (current ${(balance / LAMPORTS_PER_SOL).toFixed(3)}).`);
     console.log("deploying devnet program:", addresses.program);
     console.log("artifact SHA256:", artifactSha256);
-    await run(process.env.SOLANA_CLI ?? "solana", [
-      "program", "deploy", binary, "--url", "devnet", "--keypair", paths.authority,
-      "--upgrade-authority", paths.authority, "--program-id", existing ? addresses.program : paths.program,
-      "--buffer", paths.buffer, "--max-len", String(bytes.length), "--use-rpc", "--commitment", "confirmed"
-    ]);
-
     const signer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(readFileSync(paths.authority, "utf8"))));
     try {
+      const bufferSigner = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(readFileSync(paths.buffer, "utf8"))));
+      try { await uploadProgramBuffer(connection, signer, bufferSigner, bytes); }
+      finally { bufferSigner.secretKey.fill(0); }
+      await run(process.env.SOLANA_CLI ?? "solana", [
+        "program", "deploy", binary, "--url", "devnet", "--keypair", paths.authority,
+        "--upgrade-authority", paths.authority, "--program-id", existing ? addresses.program : paths.program,
+        "--buffer", paths.buffer, "--max-len", String(bytes.length), "--commitment", "confirmed", "--use-rpc"
+      ]);
       const provider = new AnchorProvider(connection, new Wallet(signer), { commitment: "confirmed" });
       const program = new Program<ProofOfLife>(idl, provider);
       const [config] = PublicKey.findProgramAddressSync([Buffer.from("config")], programId);
