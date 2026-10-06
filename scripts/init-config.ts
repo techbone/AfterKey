@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
-import { Connection, Keypair } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
 const ROOT = join(import.meta.dirname, "..");
 const RPC = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
@@ -18,7 +18,7 @@ const RPC = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 async function main() {
   const idl = JSON.parse(readFileSync(join(ROOT, "packages/program/idl.json"), "utf8")) as ProofOfLife;
   const kp = Keypair.fromSecretKey(
-    Uint8Array.from(JSON.parse(readFileSync(join(homedir(), ".config/solana/id.json"), "utf8"))),
+    Uint8Array.from(JSON.parse(readFileSync(process.env.ANCHOR_WALLET ?? join(homedir(), ".config/solana/id.json"), "utf8"))),
   );
   const provider = new AnchorProvider(new Connection(RPC, "confirmed"), new Wallet(kp), {
     commitment: "confirmed",
@@ -28,11 +28,12 @@ async function main() {
   const sig = await program.methods.initializeConfig().rpc();
   console.log("config initialized:", sig);
 
-  const [cfg] = await program.account.config.all();
-  console.log("admin:         ", cfg.account.admin.toBase58());
-  console.log("paused:        ", cfg.account.paused);
-  console.log("min inactivity:", cfg.account.minInactivitySecs.toString(), "s");
-  console.log("min challenge: ", cfg.account.minChallengeSecs.toString(), "s");
+  const [address] = PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId);
+  const cfg = await program.account.config.fetch(address);
+  console.log("admin:         ", cfg.admin.toBase58());
+  console.log("paused:        ", cfg.paused);
+  console.log("min inactivity:", cfg.minInactivitySecs.toString(), "s");
+  console.log("min challenge: ", cfg.minChallengeSecs.toString(), "s");
 }
 
 main().catch((e) => {

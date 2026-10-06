@@ -24,6 +24,7 @@ This `/docs` folder is the operating system of the company. Every document is wr
 | 14 | [repo-blueprint.md](repo-blueprint.md) | Monorepo layout, CI/CD, testing, environments, developer workflow |
 | 15 | [hackathon-readiness.md](hackathon-readiness.md) | October 2026 assessment, submission sprint and two-wallet checklist |
 | 16 | [closure-recovery.md](closure-recovery.md) | Updated closure behavior, retained rent and owner/beneficiary recovery invariants |
+| 17 | [devnet-key-recovery.md](devnet-key-recovery.md) | Encrypted deployment backup, restore and fresh deployment workflow |
 
 ## Canonical decisions (source of truth)
 
@@ -39,6 +40,6 @@ These decisions are fixed for the MVP. If a document contradicts this list, this
 - **Claim flow:** beneficiary `initiate_claim` → challenge window → owner `veto_claim` (any owner signature also counts as life) or `finalize_claim` → per-mint `distribute` crank → `Closed`.
 - **Backend:** Optional convenience layer only. The protocol must be fully usable with just a wallet and the chain. Backend = Fastify + Postgres (Supabase) + pg-boss + Helius webhooks + Resend email.
 - **Frontend:** Next.js (App Router) on Vercel, `@solana/wallet-adapter`, TanStack Query, Zustand, Tailwind + shadcn/ui. Sign-In-With-Solana for the (optional) notification account.
-- **Upgrades:** Program upgrade authority held by a Squads multisig during beta; freeze or move to governance after audit + stability period.
+- **Upgrades:** The devnet prototype uses a single encrypted deployment authority. The planned beta requires a Squads multisig; freeze or move to governance after audit + stability period.
 - **Fees:** Zero protocol fees at MVP. Monetization decisions deferred (see vision.md).
 - **Name:** **AfterKey** — repo, product, and brand all use one name. (Earlier drafts of these docs used a placeholder codename, "Proof of Life," before the product name was finalized; that name has been fully retired.)

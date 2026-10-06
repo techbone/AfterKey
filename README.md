@@ -25,7 +25,7 @@ npm run build --workspace @afterkey/web
 
 ## Build and test the program
 
-Install Rust and the Solana/Agave 2.1.0 CLI from their official sources. The SBF build script pins platform tools v1.51 (Rust 1.84.1), compatible with the locked dependency tree. Anchor 0.31.1 is required for IDL regeneration and the existing deployment workflow. Builds and tests do not require a funded wallet or send live transactions.
+Install Rust and the Solana/Agave 2.1.0 CLI from their official sources. The SBF build script pins platform tools v1.51 (Rust 1.84.1), compatible with the locked dependency tree. Anchor 0.31.1 is required for IDL regeneration. Builds and tests do not require a funded wallet or send live transactions.
 
 ```sh
 npm test
@@ -42,6 +42,8 @@ npm run check:deploy
 ```
 
 The deployment check is read-only and uses no wallet secrets. If a local artifact exists, it compares that artifact with public deployed bytecode and fails on mismatch. Building a new artifact does not deploy it. Preserve the original deployment identity and upgrade authority when preparing a devnet upgrade; a fresh build's generated keypair is not the existing program's deployment keypair.
+
+Devnet deployments now use an encrypted key backup and macOS Keychain rather than an unencrypted default wallet file. See [key recovery and deployment](docs/devnet-key-recovery.md) for backup, restore, funding and verified deployment commands. Keep the encrypted backup off this machine and its password separately.
 
 ## Closure and recovery
 

@@ -13,7 +13,7 @@
     "build:program": "anchor build",
     "build:sbf": "cargo build-sbf --tools-version v1.51 --manifest-path programs/proof-of-life/Cargo.toml -- --locked",
     "build:devnet": "cargo build-sbf --tools-version v1.51 --manifest-path programs/proof-of-life/Cargo.toml -- --locked --features devnet-timing",
-    "deploy:devnet": "npm run build:devnet && anchor deploy --provider.cluster devnet",
+    "deploy:devnet": "node --import tsx scripts/deploy-devnet.ts",
     "pretest": "npm run build:sbf",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:unit": "node --import tsx --test tests/vault-input.test.ts",
