@@ -22,6 +22,8 @@ This `/docs` folder is the operating system of the company. Every document is wr
 | 12 | [pitch-deck.md](pitch-deck.md) | Slide-by-slide pitch narrative with speaker notes |
 | 13 | [vc-questions.md](vc-questions.md) | Brutal self-critique: every reason this fails, and the hard questions to prepare for |
 | 14 | [repo-blueprint.md](repo-blueprint.md) | Monorepo layout, CI/CD, testing, environments, developer workflow |
+| 15 | [hackathon-readiness.md](hackathon-readiness.md) | October 2026 assessment, submission sprint and two-wallet checklist |
+| 16 | [closure-recovery.md](closure-recovery.md) | Updated closure behavior, retained rent and owner/beneficiary recovery invariants |
 
 ## Canonical decisions (source of truth)
 
