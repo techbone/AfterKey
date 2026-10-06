@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BN } from "@coral-xyz/anchor";
+import BN from "bn.js";
 import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import {
   ACCOUNT_SIZE,
@@ -82,7 +82,7 @@ test("token custody lifecycle", async (t) => {
     warp(w, 1000);
     await w.program.methods
       .depositToken(new BN(1_000_000))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey,
         vault: v.vault,
         mint,
@@ -100,7 +100,7 @@ test("token custody lifecycle", async (t) => {
     await expectError(
       w.program.methods
         .depositToken(new BN(1))
-        .accounts({
+        .accountsPartial({
           owner: w.stranger.publicKey,
           vault: v.vault,
           mint,
@@ -117,7 +117,7 @@ test("token custody lifecycle", async (t) => {
     const v = await createVault(w);
     await w.program.methods
       .depositToken(new BN(500_000))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey, vault: v.vault, mint,
         ownerTokenAccount: ownerAta, vaultTokenAccount: vaultAta(mint, v),
       })
@@ -125,7 +125,7 @@ test("token custody lifecycle", async (t) => {
 
     await w.program.methods
       .withdrawToken(new BN(200_000))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey, vault: v.vault, mint,
         vaultTokenAccount: vaultAta(mint, v), ownerTokenAccount: ownerAta,
       })
@@ -135,7 +135,7 @@ test("token custody lifecycle", async (t) => {
     await expectError(
       w.program.methods
         .withdrawToken(new BN(300_001))
-        .accounts({
+        .accountsPartial({
           owner: w.owner.publicKey, vault: v.vault, mint,
           vaultTokenAccount: vaultAta(mint, v), ownerTokenAccount: ownerAta,
         })
@@ -146,7 +146,7 @@ test("token custody lifecycle", async (t) => {
     warp(w, 1);
     await w.program.methods
       .withdrawToken(new BN(300_000))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey, vault: v.vault, mint,
         vaultTokenAccount: vaultAta(mint, v), ownerTokenAccount: ownerAta,
       })
@@ -158,7 +158,7 @@ test("token custody lifecycle", async (t) => {
     const v = await createVault(w);
     await w.program.methods
       .depositToken(new BN(100_000))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey, vault: v.vault, mint,
         ownerTokenAccount: ownerAta, vaultTokenAccount: vaultAta(mint, v),
       })
@@ -166,7 +166,7 @@ test("token custody lifecycle", async (t) => {
     await toInChallenge(w, v);
     await w.program.methods
       .withdrawToken(new BN(1))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey, vault: v.vault, mint,
         vaultTokenAccount: vaultAta(mint, v), ownerTokenAccount: ownerAta,
       })
@@ -185,7 +185,7 @@ test("token distribution", async (t) => {
   const deposit = (v: VaultCtx, amount: number) =>
     w.program.methods
       .depositToken(new BN(amount))
-      .accounts({
+      .accountsPartial({
         owner: w.owner.publicKey, vault: v.vault, mint,
         ownerTokenAccount: ownerAta, vaultTokenAccount: vaultAta(mint, v),
       })
@@ -194,7 +194,7 @@ test("token distribution", async (t) => {
   const distribute = (v: VaultCtx, recipients: PublicKey[], cranker = w.stranger) =>
     w.program.methods
       .distributeToken()
-      .accounts({
+      .accountsPartial({
         cranker: cranker.publicKey, vault: v.vault, mint,
         vaultTokenAccount: vaultAta(mint, v),
       })
@@ -249,5 +249,61 @@ test("token distribution", async (t) => {
     const v = await createVault(w);
     await deposit(v, 100_000);
     await expectError(distribute(v, [heirAAta, heirBAta]), "WrongState");
+  });
+});
+
+test("closed vaults retain the correct token recovery authority", async (t) => {
+  const w = await newWorld();
+  const mint = await createMint(w);
+  const ownerAta = await fundAta(w, mint, w.owner.publicKey, 10_000_000n);
+  const heirAAta = await fundAta(w, mint, w.heirA.publicKey, 0n);
+  const heirBAta = await fundAta(w, mint, w.heirB.publicKey, 0n);
+  const deposit = (v: VaultCtx, amount: number) => w.program.methods.depositToken(new BN(amount))
+    .accountsPartial({ owner: w.owner.publicKey, vault: v.vault, mint, ownerTokenAccount: ownerAta, vaultTokenAccount: vaultAta(mint, v) }).rpc();
+  const withdraw = (v: VaultCtx, amount: number, signer = w.owner) => w.program.methods.withdrawToken(new BN(amount))
+    .accountsPartial({ owner: signer.publicKey, vault: v.vault, mint, ownerTokenAccount: ownerAta, vaultTokenAccount: vaultAta(mint, v) })
+    .signers(signer === w.owner ? [] : [signer]).rpc();
+  const distribute = (v: VaultCtx) => w.program.methods.distributeToken()
+    .accountsPartial({ cranker: w.owner.publicKey, vault: v.vault, mint, vaultTokenAccount: vaultAta(mint, v) })
+    .remainingAccounts([heirAAta, heirBAta].map(pubkey => ({ pubkey, isWritable: true, isSigner: false }))).rpc();
+
+  await t.test("owner cancellation cannot strand a funded ATA or enable beneficiary claims", async () => {
+    const v = await createVault(w);
+    await deposit(v, 100_000);
+    await w.program.methods.closeVault().accountsPartial({ vault: v.vault }).rpc();
+    assert.deepEqual((await fetchVault(w, v)).state, { closed: {} });
+    await expectError(distribute(v), "WrongState");
+    await expectError(w.program.methods.initiateClaim().accountsPartial({ claimer: w.heirA.publicKey, vault: v.vault }).signers([w.heirA]).rpc(), "WrongState");
+    await withdraw(v, 100_000);
+    assert.equal(tokenBalance(w, vaultAta(mint, v)), -1n);
+    // External ATA transfers after cancellation remain recoverable too.
+    await fundAta(w, mint, v.vault, 50_000n);
+    warp(w, 1);
+    await withdraw(v, 50_000);
+    assert.equal(tokenBalance(w, vaultAta(mint, v)), -1n);
+  });
+
+  await t.test("released closure retains beneficiary rights and never returns them to the owner", async () => {
+    const v = await createVault(w);
+    await deposit(v, 100_001);
+    await toReleased(w, v);
+    await w.program.methods.closeReleasedVault().accountsPartial({ cranker: w.owner.publicKey, vault: v.vault }).rpc();
+    await expectError(withdraw(v, 100_001), "WrongState");
+    await expectError(w.program.methods.checkIn().accountsPartial({ vault: v.vault }).rpc(), "WrongState");
+    await expectError(w.program.methods.vetoClaim().accountsPartial({ vault: v.vault }).rpc(), "WrongState");
+    const beforeA = tokenBalance(w, heirAAta);
+    const beforeB = tokenBalance(w, heirBAta);
+    await distribute(v);
+    assert.equal(tokenBalance(w, heirAAta) - beforeA, 60_000n);
+    assert.equal(tokenBalance(w, heirBAta) - beforeB, 40_001n);
+    // An untracked mint cannot be omitted to break authority recovery.
+    const secondMint = await createMint(w);
+    const secondA = await fundAta(w, secondMint, w.heirA.publicKey, 0n);
+    const secondB = await fundAta(w, secondMint, w.heirB.publicKey, 0n);
+    const secondVaultAta = await fundAta(w, secondMint, v.vault, 101n);
+    await w.program.methods.distributeToken().accountsPartial({ cranker: w.owner.publicKey, vault: v.vault, mint: secondMint, vaultTokenAccount: secondVaultAta })
+      .remainingAccounts([secondA, secondB].map(pubkey => ({ pubkey, isWritable: true, isSigner: false }))).rpc();
+    assert.equal(tokenBalance(w, secondA), 60n);
+    assert.equal(tokenBalance(w, secondB), 41n);
   });
 });

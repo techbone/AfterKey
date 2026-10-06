@@ -29,6 +29,7 @@ pub fn withdraw_sol_handler(ctx: Context<WithdrawSol>, amount: u64) -> Result<()
 
     let auto_veto = match ctx.accounts.vault.state {
         VaultState::Active => false,
+        VaultState::Closed if ctx.accounts.vault.owner_cancelled() => false,
         VaultState::InChallenge => true,
         _ => return err!(PolError::WrongState),
     };
@@ -37,9 +38,9 @@ pub fn withdraw_sol_handler(ctx: Context<WithdrawSol>, amount: u64) -> Result<()
         ctx.accounts.sol_escrow.lamports() >= amount,
         PolError::InsufficientFunds
     );
-    // TODO(M2, test matrix): partial withdrawals leaving 0 < balance < rent-
-    // exempt minimum on the escrow fail at runtime; UI should snap to "all"
-    // near the floor. Covered by a dedicated boundary test.
+    // Partial withdrawals leaving 0 < balance < the rent-exempt minimum fail
+    // at runtime. Clients query the current minimum and offer full withdrawal
+    // instead of asking the owner to sign an unusable remainder.
 
     let bump = ctx.accounts.vault.sol_escrow_bump;
     let seeds: &[&[u8]] = &[SOL_ESCROW_SEED, vault_key.as_ref(), &[bump]];

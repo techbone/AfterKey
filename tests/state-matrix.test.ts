@@ -6,7 +6,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BN } from "@coral-xyz/anchor";
+import BN from "bn.js";
 import { Keypair } from "@solana/web3.js";
 import {
   CHALLENGE,
@@ -29,10 +29,10 @@ const DEPOSIT = new BN(10 * SOL);
 test("initialize_vault validation", async (t) => {
   const w = await newWorld();
 
-  const init = (inactivity: BN, challenge: BN, beneficiaries: unknown[]) =>
+  const init = (inactivity: BN, challenge: BN, beneficiaries: ReturnType<typeof defaultBeneficiaries>) =>
     w.program.methods
       .initializeVault(new BN(w.nextVaultId++), inactivity, challenge, beneficiaries)
-      .accounts({ owner: w.owner.publicKey })
+      .accountsPartial({ owner: w.owner.publicKey })
       .rpc();
 
   await t.test("inactivity below minimum", () =>
@@ -83,7 +83,7 @@ test("check_in matrix", async (t) => {
     const v = await createVault(w);
     const before = (await fetchVault(w, v)).lastCheckin;
     warp(w, 1000);
-    await w.program.methods.checkIn().accounts({ vault: v.vault }).rpc();
+    await w.program.methods.checkIn().accountsPartial({ vault: v.vault }).rpc();
     const after = (await fetchVault(w, v)).lastCheckin;
     assert.ok(after.gt(before), "last_checkin must advance");
   });
@@ -93,7 +93,7 @@ test("check_in matrix", async (t) => {
     await expectError(
       w.program.methods
         .checkIn()
-        .accounts({ owner: w.heirA.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.heirA.publicKey, vault: v.vault })
         .signers([w.heirA])
         .rpc(),
       "NotOwner",
@@ -105,7 +105,7 @@ test("check_in matrix", async (t) => {
     await expectError(
       w.program.methods
         .checkIn()
-        .accounts({ owner: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc(),
       "NotOwner",
@@ -115,7 +115,7 @@ test("check_in matrix", async (t) => {
   await t.test("owner × InChallenge → ok AND vetoes the claim", async () => {
     const v = await createVault(w);
     await toInChallenge(w, v);
-    await w.program.methods.checkIn().accounts({ vault: v.vault }).rpc();
+    await w.program.methods.checkIn().accountsPartial({ vault: v.vault }).rpc();
     const s = await fetchVault(w, v);
     assert.deepEqual(s.state, { active: {} });
     assert.equal(s.claimInitiatedAt.toNumber(), 0);
@@ -125,7 +125,7 @@ test("check_in matrix", async (t) => {
     const v = await createVault(w);
     await toReleased(w, v);
     await expectError(
-      w.program.methods.checkIn().accounts({ vault: v.vault }).rpc(),
+      w.program.methods.checkIn().accountsPartial({ vault: v.vault }).rpc(),
       "WrongState",
     );
   });
@@ -140,7 +140,7 @@ test("update_config matrix", async (t) => {
     warp(w, 1000);
     await w.program.methods
       .updateConfig([{ key: w.heirB.publicKey, shareBps: 10000 }], null, null)
-      .accounts({ owner: w.owner.publicKey, vault: v.vault })
+      .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
       .rpc();
     const s = await fetchVault(w, v);
     assert.equal(s.beneficiaries.length, 1);
@@ -152,7 +152,7 @@ test("update_config matrix", async (t) => {
     await expectError(
       w.program.methods
         .updateConfig(null, null, null)
-        .accounts({ owner: w.heirA.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.heirA.publicKey, vault: v.vault })
         .signers([w.heirA])
         .rpc(),
       "NotOwner",
@@ -165,7 +165,7 @@ test("update_config matrix", async (t) => {
     await expectError(
       w.program.methods
         .updateConfig([{ key: w.stranger.publicKey, shareBps: 10000 }], null, null)
-        .accounts({ owner: w.owner.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
         .rpc(),
       "WrongState",
     );
@@ -177,7 +177,7 @@ test("update_config matrix", async (t) => {
     await expectError(
       w.program.methods
         .updateConfig(null, null, null)
-        .accounts({ owner: w.owner.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
         .rpc(),
       "WrongState",
     );
@@ -188,7 +188,7 @@ test("update_config matrix", async (t) => {
     await expectError(
       w.program.methods
         .updateConfig(null, new BN(60), null)
-        .accounts({ owner: w.owner.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
         .rpc(),
       "InvalidPeriod",
     );
@@ -196,10 +196,10 @@ test("update_config matrix", async (t) => {
 
   await t.test("invalid new beneficiaries → exact codes", async () => {
     const v = await createVault(w);
-    const upd = (b: unknown[]) =>
+    const upd = (b: ReturnType<typeof defaultBeneficiaries>) =>
       w.program.methods
         .updateConfig(b, null, null)
-        .accounts({ owner: w.owner.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
         .rpc();
     await expectError(upd([]), "NoBeneficiaries");
     await expectError(
@@ -224,7 +224,7 @@ test("deposit_sol / withdraw_sol matrix", async (t) => {
     await expectError(
       w.program.methods
         .depositSol(new BN(SOL))
-        .accounts({ owner: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc(),
       "NotOwner",
@@ -235,14 +235,14 @@ test("deposit_sol / withdraw_sol matrix", async (t) => {
     const v = await createVault(w, { depositSol: DEPOSIT });
     await toInChallenge(w, v);
     await expectError(
-      w.program.methods.depositSol(new BN(SOL)).accounts({ vault: v.vault }).rpc(),
+      w.program.methods.depositSol(new BN(SOL)).accountsPartial({ vault: v.vault }).rpc(),
       "WrongState",
     );
   });
 
   await t.test("withdraw × Active → ok (partial)", async () => {
     const v = await createVault(w, { depositSol: DEPOSIT });
-    await w.program.methods.withdrawSol(new BN(SOL)).accounts({ vault: v.vault }).rpc();
+    await w.program.methods.withdrawSol(new BN(SOL)).accountsPartial({ vault: v.vault }).rpc();
     assert.equal(w.client.getBalance(v.solEscrow), BigInt(9 * SOL));
   });
 
@@ -251,7 +251,7 @@ test("deposit_sol / withdraw_sol matrix", async (t) => {
     await expectError(
       w.program.methods
         .withdrawSol(DEPOSIT.add(new BN(1)))
-        .accounts({ vault: v.vault })
+        .accountsPartial({ vault: v.vault })
         .rpc(),
       "InsufficientFunds",
     );
@@ -262,7 +262,7 @@ test("deposit_sol / withdraw_sol matrix", async (t) => {
     await expectError(
       w.program.methods
         .withdrawSol(new BN(SOL))
-        .accounts({ owner: w.heirA.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.heirA.publicKey, vault: v.vault })
         .signers([w.heirA])
         .rpc(),
       "NotOwner",
@@ -272,7 +272,7 @@ test("deposit_sol / withdraw_sol matrix", async (t) => {
   await t.test("withdraw × InChallenge → ok AND auto-vetoes", async () => {
     const v = await createVault(w, { depositSol: DEPOSIT });
     await toInChallenge(w, v);
-    await w.program.methods.withdrawSol(new BN(SOL)).accounts({ vault: v.vault }).rpc();
+    await w.program.methods.withdrawSol(new BN(SOL)).accountsPartial({ vault: v.vault }).rpc();
     const s = await fetchVault(w, v);
     assert.deepEqual(s.state, { active: {} });
     assert.equal(s.claimInitiatedAt.toNumber(), 0);
@@ -282,11 +282,11 @@ test("deposit_sol / withdraw_sol matrix", async (t) => {
     const v = await createVault(w, { depositSol: DEPOSIT });
     await toReleased(w, v);
     await expectError(
-      w.program.methods.depositSol(new BN(SOL)).accounts({ vault: v.vault }).rpc(),
+      w.program.methods.depositSol(new BN(SOL)).accountsPartial({ vault: v.vault }).rpc(),
       "WrongState",
     );
     await expectError(
-      w.program.methods.withdrawSol(new BN(SOL)).accounts({ vault: v.vault }).rpc(),
+      w.program.methods.withdrawSol(new BN(SOL)).accountsPartial({ vault: v.vault }).rpc(),
       "WrongState",
     );
   });
@@ -301,7 +301,7 @@ test("claim flow matrix", async (t) => {
     await expectError(
       w.program.methods
         .initiateClaim()
-        .accounts({ claimer: w.owner.publicKey, vault: v.vault })
+        .accountsPartial({ claimer: w.owner.publicKey, vault: v.vault })
         .rpc(),
       "NotBeneficiary",
     );
@@ -313,7 +313,7 @@ test("claim flow matrix", async (t) => {
     await expectError(
       w.program.methods
         .initiateClaim()
-        .accounts({ claimer: w.heirB.publicKey, vault: v.vault })
+        .accountsPartial({ claimer: w.heirB.publicKey, vault: v.vault })
         .signers([w.heirB])
         .rpc(),
       "WrongState",
@@ -326,7 +326,7 @@ test("claim flow matrix", async (t) => {
     await expectError(
       w.program.methods
         .initiateClaim()
-        .accounts({ claimer: w.heirB.publicKey, vault: v.vault })
+        .accountsPartial({ claimer: w.heirB.publicKey, vault: v.vault })
         .signers([w.heirB])
         .rpc(),
       "WrongState",
@@ -336,20 +336,20 @@ test("claim flow matrix", async (t) => {
   await t.test("veto × Active → WrongState; by non-owner → NotOwner", async () => {
     const v = await createVault(w);
     await expectError(
-      w.program.methods.vetoClaim().accounts({ vault: v.vault }).rpc(),
+      w.program.methods.vetoClaim().accountsPartial({ vault: v.vault }).rpc(),
       "WrongState",
     );
     await toInChallenge(w, v);
     await expectError(
       w.program.methods
         .vetoClaim()
-        .accounts({ owner: w.heirA.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.heirA.publicKey, vault: v.vault })
         .signers([w.heirA])
         .rpc(),
       "NotOwner",
     );
     // real owner veto works
-    await w.program.methods.vetoClaim().accounts({ vault: v.vault }).rpc();
+    await w.program.methods.vetoClaim().accountsPartial({ vault: v.vault }).rpc();
     assert.deepEqual((await fetchVault(w, v)).state, { active: {} });
   });
 
@@ -358,7 +358,7 @@ test("claim flow matrix", async (t) => {
     await expectError(
       w.program.methods
         .finalizeClaim()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc(),
       "WrongState",
@@ -367,14 +367,14 @@ test("claim flow matrix", async (t) => {
     warp(w, CHALLENGE.toNumber() + 2);
     await w.program.methods
       .finalizeClaim()
-      .accounts({ cranker: w.heirB.publicKey, vault: v.vault })
+      .accountsPartial({ cranker: w.heirB.publicKey, vault: v.vault })
       .signers([w.heirB])
       .rpc();
     assert.deepEqual((await fetchVault(w, v)).state, { released: {} });
     await expectError(
       w.program.methods
         .finalizeClaim()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc(),
       "WrongState",
@@ -392,7 +392,7 @@ test("timing boundaries (strict > semantics)", async (t) => {
     const claim = () =>
       w.program.methods
         .initiateClaim()
-        .accounts({ claimer: w.heirA.publicKey, vault: v.vault })
+        .accountsPartial({ claimer: w.heirA.publicKey, vault: v.vault })
         .signers([w.heirA])
         .rpc();
     warpTo(w, deadline);
@@ -410,7 +410,7 @@ test("timing boundaries (strict > semantics)", async (t) => {
     const finalize = () =>
       w.program.methods
         .finalizeClaim()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc();
     warpTo(w, deadline);
@@ -430,19 +430,19 @@ test("close_released_vault", async (t) => {
     await expectError(
       w.program.methods
         .closeReleasedVault()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc(),
       "VaultNotEmpty",
     );
   });
 
-  await t.test("after distribution, anyone closes it; account is gone", async () => {
+  await t.test("after distribution, anyone closes it; authority record is retained", async () => {
     const v = await createVault(w, { depositSol: DEPOSIT });
     await toReleased(w, v);
     await w.program.methods
       .distributeSol()
-      .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+      .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
       .remainingAccounts([
         { pubkey: w.heirA.publicKey, isSigner: false, isWritable: true },
         { pubkey: w.heirB.publicKey, isSigner: false, isWritable: true },
@@ -452,10 +452,12 @@ test("close_released_vault", async (t) => {
     warp(w, 1);
     await w.program.methods
       .closeReleasedVault()
-      .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+      .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
       .signers([w.stranger])
       .rpc();
-    await assert.rejects(fetchVault(w, v)); // account deallocated
+    const closed = await fetchVault(w, v);
+    assert.deepEqual(closed.state, { closed: {} });
+    assert.ok(closed.claimer.equals(w.heirA.publicKey));
   });
 
   await t.test("cannot close an active vault", async () => {
@@ -463,7 +465,7 @@ test("close_released_vault", async (t) => {
     await expectError(
       w.program.methods
         .closeReleasedVault()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .signers([w.stranger])
         .rpc(),
       "WrongState",
@@ -479,7 +481,7 @@ test("distribute_sol adversarial", async (t) => {
     const distribute = () =>
       w.program.methods
         .distributeSol()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .remainingAccounts([
           { pubkey: w.heirA.publicKey, isSigner: false, isWritable: true },
           { pubkey: w.heirB.publicKey, isSigner: false, isWritable: true },
@@ -497,7 +499,7 @@ test("distribute_sol adversarial", async (t) => {
     const distribute = (recipients: { pubkey: typeof w.heirA.publicKey }[]) =>
       w.program.methods
         .distributeSol()
-        .accounts({ cranker: w.stranger.publicKey, vault: v.vault })
+        .accountsPartial({ cranker: w.stranger.publicKey, vault: v.vault })
         .remainingAccounts(
           recipients.map((r) => ({ pubkey: r.pubkey, isSigner: false, isWritable: true })),
         )
@@ -527,17 +529,19 @@ test("close_vault matrix", async (t) => {
     await expectError(
       w.program.methods
         .closeVault()
-        .accounts({ owner: w.owner.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
         .rpc(),
       "VaultNotEmpty",
     );
-    await w.program.methods.withdrawSol(DEPOSIT).accounts({ vault: v.vault }).rpc();
+    await w.program.methods.withdrawSol(DEPOSIT).accountsPartial({ vault: v.vault }).rpc();
     warp(w, 1); // new blockhash — retry would otherwise dedupe with the failed attempt
     await w.program.methods
       .closeVault()
-      .accounts({ owner: w.owner.publicKey, vault: v.vault })
+      .accountsPartial({ owner: w.owner.publicKey, vault: v.vault })
       .rpc();
-    await assert.rejects(fetchVault(w, v)); // account gone
+    const closed = await fetchVault(w, v);
+    assert.deepEqual(closed.state, { closed: {} });
+    assert.equal(closed.claimer.toBase58(), "11111111111111111111111111111111");
   });
 
   await t.test("non-owner → NotOwner", async () => {
@@ -545,7 +549,7 @@ test("close_vault matrix", async (t) => {
     await expectError(
       w.program.methods
         .closeVault()
-        .accounts({ owner: w.heirA.publicKey, vault: v.vault })
+        .accountsPartial({ owner: w.heirA.publicKey, vault: v.vault })
         .signers([w.heirA])
         .rpc(),
       "NotOwner",
@@ -558,7 +562,7 @@ test("close_vault matrix", async (t) => {
     await expectError(
       w.program.methods
         .closeVault()
-        .accounts({ owner: w.owner.publicKey, vault: v1.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v1.vault })
         .rpc(),
       "WrongState",
     );
@@ -567,7 +571,7 @@ test("close_vault matrix", async (t) => {
     await expectError(
       w.program.methods
         .closeVault()
-        .accounts({ owner: w.owner.publicKey, vault: v2.vault })
+        .accountsPartial({ owner: w.owner.publicKey, vault: v2.vault })
         .rpc(),
       "WrongState",
     );
@@ -581,7 +585,7 @@ test("admin config & pause asymmetry", async (t) => {
     await expectError(
       w.program.methods
         .updateAdminConfig(true, null, null, null)
-        .accounts({ admin: w.stranger.publicKey })
+        .accountsPartial({ admin: w.stranger.publicKey })
         .signers([w.stranger])
         .rpc(),
       "ConstraintHasOne",
@@ -600,24 +604,24 @@ test("admin config & pause asymmetry", async (t) => {
     await expectError(
       w.program.methods
         .initializeVault(new BN(w.nextVaultId++), INACTIVITY, CHALLENGE, defaultBeneficiaries(w))
-        .accounts({ owner: w.owner.publicKey })
+        .accountsPartial({ owner: w.owner.publicKey })
         .rpc(),
       "Paused",
     );
     await expectError(
-      w.program.methods.depositSol(new BN(SOL)).accounts({ vault: fresh.vault }).rpc(),
+      w.program.methods.depositSol(new BN(SOL)).accountsPartial({ vault: fresh.vault }).rpc(),
       "Paused",
     );
 
     // NEVER blocked: check-in, withdraw, the whole claim flow
-    await w.program.methods.checkIn().accounts({ vault: fresh.vault }).rpc();
-    await w.program.methods.withdrawSol(new BN(SOL)).accounts({ vault: fresh.vault }).rpc();
+    await w.program.methods.checkIn().accountsPartial({ vault: fresh.vault }).rpc();
+    await w.program.methods.withdrawSol(new BN(SOL)).accountsPartial({ vault: fresh.vault }).rpc();
     await w.program.methods
       .initiateClaim()
-      .accounts({ claimer: w.heirA.publicKey, vault: claimable.vault })
+      .accountsPartial({ claimer: w.heirA.publicKey, vault: claimable.vault })
       .signers([w.heirA])
       .rpc();
-    await w.program.methods.vetoClaim().accounts({ vault: claimable.vault }).rpc();
+    await w.program.methods.vetoClaim().accountsPartial({ vault: claimable.vault }).rpc();
 
     await w.program.methods.updateAdminConfig(false, null, null, null).rpc();
   });

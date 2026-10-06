@@ -40,6 +40,7 @@ pub fn withdraw_token_handler(ctx: Context<WithdrawToken>, amount: u64) -> Resul
 
     let auto_veto = match ctx.accounts.vault.state {
         VaultState::Active => false,
+        VaultState::Closed if ctx.accounts.vault.owner_cancelled() => false,
         VaultState::InChallenge => true,
         _ => return err!(PolError::WrongState),
     };

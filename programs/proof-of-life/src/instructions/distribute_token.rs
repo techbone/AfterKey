@@ -5,7 +5,7 @@ use anchor_spl::token::{self, CloseAccount, Mint, Token, TokenAccount, TransferC
 use crate::constants::{TOTAL_SHARE_BPS, VAULT_SEED};
 use crate::errors::PolError;
 use crate::events::Distributed;
-use crate::state::{Vault, VaultState};
+use crate::state::Vault;
 
 // Permissionless crank, one call per mint. remaining_accounts = beneficiary
 // ATAs in stored order — each is validated by DERIVING the ATA from the
@@ -32,7 +32,7 @@ pub fn distribute_token_handler<'info>(
     ctx: Context<'_, '_, 'info, 'info, DistributeToken<'info>>,
 ) -> Result<()> {
     let vault = &ctx.accounts.vault;
-    vault.assert_state(VaultState::Released)?;
+    require!(vault.inheritance_released(), PolError::WrongState);
 
     let recipients = ctx.remaining_accounts;
     require!(

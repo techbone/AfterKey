@@ -4,7 +4,7 @@ use anchor_lang::system_program::{self, Transfer};
 use crate::constants::{SOL_ESCROW_SEED, TOTAL_SHARE_BPS};
 use crate::errors::PolError;
 use crate::events::Distributed;
-use crate::state::{Vault, VaultState};
+use crate::state::Vault;
 
 // Permissionless crank. remaining_accounts = beneficiary wallets in the exact
 // order stored on the vault — each key is validated against stored state, so
@@ -25,7 +25,7 @@ pub struct DistributeSol<'info> {
 
 pub fn distribute_sol_handler<'info>(ctx: Context<'_, '_, 'info, 'info, DistributeSol<'info>>) -> Result<()> {
     let vault = &ctx.accounts.vault;
-    vault.assert_state(VaultState::Released)?;
+    require!(vault.inheritance_released(), PolError::WrongState);
 
     let recipients = ctx.remaining_accounts;
     require!(

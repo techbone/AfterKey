@@ -10,12 +10,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { BN, Program } from "@coral-xyz/anchor";
+import BN from "bn.js";
+import { Program } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fromWorkspace, LiteSVMProvider } from "anchor-litesvm";
+import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 
 const ROOT = join(import.meta.dirname, "..");
-const IDL = JSON.parse(readFileSync(join(ROOT, "target/idl/proof_of_life.json"), "utf8"));
+const IDL = JSON.parse(readFileSync(join(ROOT, "packages/program/idl.json"), "utf8")) as ProofOfLife;
 
 const DAY = 86_400;
 const INACTIVITY = new BN(180 * DAY); // 6 months
@@ -34,7 +36,7 @@ function expectError(p: Promise<unknown>, code: string): Promise<void> {
 test("full inheritance lifecycle", async () => {
   const client = fromWorkspace(ROOT);
   const provider = new LiteSVMProvider(client);
-  const program = new Program(IDL, provider);
+  const program = new Program<ProofOfLife>(IDL, provider);
   const programId = new PublicKey(IDL.address);
 
   const owner = provider.wallet.payer;
@@ -75,7 +77,7 @@ test("full inheritance lifecycle", async () => {
   ];
   await program.methods
     .initializeVault(vaultId, INACTIVITY, CHALLENGE, beneficiaries)
-    .accounts({ owner: owner.publicKey })
+    .accountsPartial({ owner: owner.publicKey })
     .rpc();
 
   let v = await vaultState();
@@ -83,7 +85,7 @@ test("full inheritance lifecycle", async () => {
   assert.equal(v.beneficiaries.length, 2);
 
   const DEPOSIT = new BN(10 * LAMPORTS_PER_SOL);
-  await program.methods.depositSol(DEPOSIT).accounts({ vault }).rpc();
+  await program.methods.depositSol(DEPOSIT).accountsPartial({ vault }).rpc();
   assert.equal(client.getBalance(solEscrow), BigInt(DEPOSIT.toString()));
 
   // --- invalid beneficiary configs are rejected ---
@@ -93,7 +95,7 @@ test("full inheritance lifecycle", async () => {
         { key: heirA.publicKey, shareBps: 5000 },
         { key: heirB.publicKey, shareBps: 4000 },
       ])
-      .accounts({ owner: owner.publicKey })
+      .accountsPartial({ owner: owner.publicKey })
       .rpc(),
     "SharesMustSum10000",
   );
@@ -102,7 +104,7 @@ test("full inheritance lifecycle", async () => {
   await expectError(
     program.methods
       .initiateClaim()
-      .accounts({ claimer: heirA.publicKey, vault })
+      .accountsPartial({ claimer: heirA.publicKey, vault })
       .signers([heirA])
       .rpc(),
     "InactivityPeriodNotElapsed",
@@ -113,18 +115,18 @@ test("full inheritance lifecycle", async () => {
   await expectError(
     program.methods
       .initiateClaim()
-      .accounts({ claimer: stranger.publicKey, vault })
+      .accountsPartial({ claimer: stranger.publicKey, vault })
       .signers([stranger])
       .rpc(),
     "NotBeneficiary",
   );
 
   // check-in resets the timer → heir can't claim anymore
-  await program.methods.checkIn().accounts({ vault }).rpc();
+  await program.methods.checkIn().accountsPartial({ vault }).rpc();
   await expectError(
     program.methods
       .initiateClaim()
-      .accounts({ claimer: heirA.publicKey, vault })
+      .accountsPartial({ claimer: heirA.publicKey, vault })
       .signers([heirA])
       .rpc(),
     "InactivityPeriodNotElapsed",
@@ -134,13 +136,13 @@ test("full inheritance lifecycle", async () => {
   warp(INACTIVITY.toNumber() + DAY);
   await program.methods
     .initiateClaim()
-    .accounts({ claimer: heirA.publicKey, vault })
+    .accountsPartial({ claimer: heirA.publicKey, vault })
     .signers([heirA])
     .rpc();
   v = await vaultState();
   assert.deepEqual(v.state, { inChallenge: {} });
 
-  await program.methods.vetoClaim().accounts({ vault }).rpc();
+  await program.methods.vetoClaim().accountsPartial({ vault }).rpc();
   v = await vaultState();
   assert.deepEqual(v.state, { active: {} });
   assert.equal(v.claimer.toBase58(), PublicKey.default.toBase58());
@@ -149,7 +151,7 @@ test("full inheritance lifecycle", async () => {
   warp(INACTIVITY.toNumber() + DAY);
   await program.methods
     .initiateClaim()
-    .accounts({ claimer: heirB.publicKey, vault })
+    .accountsPartial({ claimer: heirB.publicKey, vault })
     .signers([heirB])
     .rpc();
 
@@ -157,7 +159,7 @@ test("full inheritance lifecycle", async () => {
   await expectError(
     program.methods
       .finalizeClaim()
-      .accounts({ cranker: stranger.publicKey, vault })
+      .accountsPartial({ cranker: stranger.publicKey, vault })
       .signers([stranger])
       .rpc(),
     "ChallengeNotElapsed",
@@ -167,7 +169,7 @@ test("full inheritance lifecycle", async () => {
   warp(CHALLENGE.toNumber() + 1);
   await program.methods
     .finalizeClaim()
-    .accounts({ cranker: stranger.publicKey, vault })
+    .accountsPartial({ cranker: stranger.publicKey, vault })
     .signers([stranger])
     .rpc();
   v = await vaultState();
@@ -178,7 +180,7 @@ test("full inheritance lifecycle", async () => {
   const balB = client.getBalance(heirB.publicKey)!;
   await program.methods
     .distributeSol()
-    .accounts({ cranker: stranger.publicKey, vault })
+    .accountsPartial({ cranker: stranger.publicKey, vault })
     .remainingAccounts([
       { pubkey: heirA.publicKey, isSigner: false, isWritable: true },
       { pubkey: heirB.publicKey, isSigner: false, isWritable: true },
@@ -193,7 +195,7 @@ test("full inheritance lifecycle", async () => {
 
   // owner can no longer touch a released vault
   await expectError(
-    program.methods.checkIn().accounts({ vault }).rpc(),
+    program.methods.checkIn().accountsPartial({ vault }).rpc(),
     "WrongState",
   );
 });

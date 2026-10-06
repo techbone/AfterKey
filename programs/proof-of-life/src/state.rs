@@ -65,6 +65,19 @@ impl Vault {
         self.beneficiaries.iter().any(|b| b.key == *key)
     }
 
+    /// Closed vaults retain their authority record so unsolicited or omitted
+    /// SPL deposits remain recoverable. A successful inheritance retains its
+    /// non-default claimer; owner cancellation clears it. Never let the owner
+    /// recover assets that have already been released to beneficiaries.
+    pub fn inheritance_released(&self) -> bool {
+        self.state == VaultState::Released
+            || (self.state == VaultState::Closed && self.claimer != Pubkey::default())
+    }
+
+    pub fn owner_cancelled(&self) -> bool {
+        self.state == VaultState::Closed && self.claimer == Pubkey::default()
+    }
+
     /// Strictly after the deadline: claimable at last_checkin + period + 1s
     /// (boundary semantics tested explicitly — smart-contracts.md §10).
     pub fn inactivity_elapsed(&self, now: i64) -> Result<bool> {
