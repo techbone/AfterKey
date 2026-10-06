@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "@/components/wallet-button";
+import { AppShell } from "@/components/app-shell";
+import { RpcError, TransactionFeedback, type TransactionReceipt } from "@/components/transaction-feedback";
+import { solToLamports } from "@/lib/vault-validation";
 import { Countdown } from "@/components/countdown";
 import {
   useCancelVault,
@@ -17,22 +20,8 @@ import {
 } from "@/hooks/useVault";
 import { explorerAddr, shortKey } from "@/lib/solana";
 
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="min-h-screen">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <Link href="/" className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="heartbeat text-pulse">●</span> AfterKey
-        </Link>
-        <WalletButton />
-      </header>
-      <div className="mx-auto max-w-5xl px-6 pb-24">{children}</div>
-    </main>
-  );
-}
-
-function VaultCard({ vault }: { vault: VaultData }) {
-  const { data: balance } = useVaultBalance(vault.address);
+function VaultCard({ vault, onReceipt }: { vault: VaultData; onReceipt: (receipt: TransactionReceipt) => void }) {
+  const { data: balance, isError: balanceError, refetch: refreshBalance } = useVaultBalance(vault.address);
   const checkIn = useCheckIn();
   const veto = useVetoClaim();
   const deposit = useDepositSol();
@@ -41,17 +30,26 @@ function VaultCard({ vault }: { vault: VaultData }) {
   const [amount, setAmount] = useState("");
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 
-  const deadline = vault.lastCheckin.toNumber() + vault.inactivityPeriod.toNumber();
+  const deadline = vault.lastCheckin.toNumber() + vault.inactivityPeriod.toNumber() + 1;
   const challengeEnds =
-    vault.claimInitiatedAt.toNumber() + vault.challengePeriod.toNumber();
+    vault.claimInitiatedAt.toNumber() + vault.challengePeriod.toNumber() + 1;
   const busy =
     checkIn.isPending ||
     veto.isPending ||
     deposit.isPending ||
     withdraw.isPending ||
     cancel.isPending;
-  const err =
-    checkIn.error ?? veto.error ?? deposit.error ?? withdraw.error ?? cancel.error ?? null;
+  const action = [checkIn, veto, deposit, withdraw, cancel].reduce((latest, item) =>
+    item.submittedAt > latest.submittedAt ? item : latest,
+  );
+  let validAmount = false;
+  let canWithdraw = false;
+  let amountIssue: string | null = null;
+  try {
+    const lamports = solToLamports(amount);
+    validAmount = true;
+    canWithdraw = balance !== undefined && lamports <= BigInt(Math.round(balance * 1_000_000_000));
+  } catch (e) { if (amount.trim()) amountIssue = e instanceof Error ? e.message : String(e); }
   const canCancel = vault.state === "active" || vault.state === "inChallenge";
 
   return (
@@ -66,9 +64,12 @@ function VaultCard({ vault }: { vault: VaultData }) {
           vault {shortKey(vault.address)}
         </a>
         <span className="font-display text-2xl font-bold">
-          {balance !== undefined ? `${balance} SOL` : "…"}
+          {balance !== undefined ? `${balance.toLocaleString(undefined, { maximumFractionDigits: 9 })} SOL` : "…"}
         </span>
       </div>
+
+      {balanceError && <p role="alert" className="mt-3 text-sm text-danger">Balance unavailable. <button onClick={() => refreshBalance()} className="underline">Retry balance</button></p>}
+      <p className="mt-3 text-xs tracking-wide text-mist uppercase">{vault.state === "inChallenge" ? "Owner response window" : vault.state === "released" ? "Ready for beneficiaries" : "Active · you keep control"}</p>
 
       {vault.state === "active" && (
         <>
@@ -107,13 +108,14 @@ function VaultCard({ vault }: { vault: VaultData }) {
 
       {vault.state === "released" && (
         <div className="mt-8 rounded-2xl border border-edge p-6 text-mist">
-          This vault has been released to its beneficiaries.
+          The waiting period has ended. Beneficiaries can now receive their shares from the inheritance page.
         </div>
       )}
 
       {vault.state === "active" && (
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <input
+            aria-label="SOL amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount (SOL)"
@@ -121,15 +123,15 @@ function VaultCard({ vault }: { vault: VaultData }) {
             className="w-36 rounded-xl border border-edge bg-ink px-4 py-2.5 text-sm outline-none focus:border-pulse"
           />
           <button
-            onClick={() => deposit.mutate({ vault: vault.address, sol: Number(amount) })}
-            disabled={busy || !Number(amount)}
+            onClick={() => deposit.mutate({ vault: vault.address, amount }, { onSuccess: () => setAmount("") })}
+            disabled={busy || !validAmount}
             className="rounded-xl border border-edge px-5 py-2.5 text-sm font-semibold transition hover:border-pulse disabled:opacity-50"
           >
             Deposit
           </button>
           <button
-            onClick={() => withdraw.mutate({ vault: vault.address, sol: Number(amount) })}
-            disabled={busy || !Number(amount)}
+            onClick={() => withdraw.mutate({ vault: vault.address, amount }, { onSuccess: () => setAmount("") })}
+            disabled={busy || !validAmount || !canWithdraw}
             className="rounded-xl border border-edge px-5 py-2.5 text-sm font-semibold transition hover:border-pulse disabled:opacity-50"
           >
             Withdraw
@@ -137,6 +139,7 @@ function VaultCard({ vault }: { vault: VaultData }) {
         </div>
       )}
 
+      {amountIssue && <p role="alert" className="mt-3 text-xs text-danger">{amountIssue}</p>}
       <div className="mt-8 border-t border-edge pt-6">
         <h4 className="text-xs font-semibold tracking-wide text-mist uppercase">
           Beneficiaries
@@ -163,25 +166,24 @@ function VaultCard({ vault }: { vault: VaultData }) {
           ) : (
             <div className="rounded-2xl border border-danger/40 bg-danger/10 p-5">
               <p className="text-sm text-mist">
-                This withdraws everything back to your wallet and permanently deletes this
-                vault. No beneficiary will ever be able to claim from it again
+                This returns the vault’s SOL to your wallet and permanently cancels its inheritance. No beneficiary can start a new claim
                 {vault.state === "inChallenge"
                   ? ` — including ${shortKey(vault.claimer)}, whose claim is in progress`
                   : ""}
-                . <span className="font-semibold text-snow">This cannot be undone.</span>
+                . The on-chain record is retained so any remaining tokens can be recovered; its rent stays locked. <span className="font-semibold text-snow">Cancellation cannot be undone.</span>
               </p>
               <div className="mt-4 flex gap-3">
                 <button
                   onClick={() =>
-                    cancel.mutate(
-                      { vault: vault.address, balanceSol: balance ?? 0 },
-                      { onSettled: () => setConfirmingCancel(false) },
-                    )
+                    void cancel.mutateAsync(vault.address)
+                      .then(onReceipt)
+                      .catch(() => {})
+                      .finally(() => setConfirmingCancel(false))
                   }
                   disabled={busy}
                   className="rounded-xl bg-danger px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-400 disabled:opacity-50"
                 >
-                  {cancel.isPending ? "Signing…" : "Yes, cancel and withdraw everything"}
+                  {cancel.isPending ? "Signing…" : "Yes, cancel and return SOL"}
                 </button>
                 <button
                   onClick={() => setConfirmingCancel(false)}
@@ -196,37 +198,35 @@ function VaultCard({ vault }: { vault: VaultData }) {
         </div>
       )}
 
-      {err && (
-        <p className="mt-4 text-sm break-all text-danger">
-          {String(err).slice(0, 200)}
-        </p>
-      )}
+      <TransactionFeedback action={action} />
     </div>
   );
 }
 
 export default function Dashboard() {
-  const { connected } = useWallet();
-  const { data: vaults, isLoading } = useMyVaults();
+  const { connected, publicKey } = useWallet();
+  const { data: vaults, isLoading, isError, refetch } = useMyVaults();
+  const [receipt, setReceipt] = useState<TransactionReceipt>();
+  useEffect(() => setReceipt(undefined), [publicKey?.toBase58()]);
 
   if (!connected) {
     return (
-      <Shell>
+      <AppShell>
         <div className="mx-auto max-w-md pt-24 text-center">
           <h1 className="font-display text-3xl font-bold">Connect your wallet</h1>
           <p className="mt-3 text-mist">
-            Your wallet is your identity — no accounts, no passwords.
+            Use a browser with a Solana wallet installed. Set your wallet to devnet to use test SOL.
           </p>
           <div className="mt-8 flex justify-center">
             <WalletButton />
           </div>
         </div>
-      </Shell>
+      </AppShell>
     );
   }
 
   return (
-    <Shell>
+    <AppShell>
       <div className="flex items-center justify-between pt-6">
         <h1 className="font-display text-3xl font-bold">Your vaults</h1>
         <Link
@@ -237,11 +237,13 @@ export default function Dashboard() {
         </Link>
       </div>
 
+      <TransactionFeedback action={{ isPending: false, error: null, data: receipt?.walletAddress === publicKey?.toBase58() ? receipt : undefined }} />
       <div className="mt-8 space-y-8">
         {isLoading && <p className="text-mist">Loading your vaults…</p>}
-        {!isLoading && !vaults?.length && (
+        {isError && <RpcError retry={() => refetch()} />}
+        {!isLoading && !isError && !vaults?.length && (
           <div className="rounded-3xl border border-dashed border-edge p-16 text-center">
-            <p className="font-display text-xl font-bold">No vault yet</p>
+            <p className="font-display text-xl font-bold">No active vaults</p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-mist">
               Create one in under a minute: pick a timer, name your beneficiaries, deposit.
             </p>
@@ -253,8 +255,8 @@ export default function Dashboard() {
             </Link>
           </div>
         )}
-        {vaults?.map((v) => <VaultCard key={v.address.toBase58()} vault={v} />)}
+        {vaults?.map((v) => <VaultCard key={v.address.toBase58()} vault={v} onReceipt={setReceipt} />)}
       </div>
-    </Shell>
+    </AppShell>
   );
 }

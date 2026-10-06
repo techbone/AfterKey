@@ -13,9 +13,11 @@ function pad(n: number) {
 export function Countdown({
   deadline, // unix seconds when claimable
   totalSecs, // full period length, for the progress fraction
+  kind = "inactivity",
 }: {
   deadline: number;
   totalSecs: number;
+  kind?: "inactivity" | "challenge";
 }) {
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
@@ -46,7 +48,7 @@ export function Countdown({
         </div>
       ) : (
         <div className="font-display text-5xl font-bold text-danger sm:text-6xl">
-          Claimable now
+          {kind === "challenge" ? "Ready to release" : "Claimable now"}
         </div>
       )}
       <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-edge">
@@ -57,8 +59,8 @@ export function Countdown({
       </div>
       <p className="mt-2 text-sm text-mist">
         {remaining > 0
-          ? "until your beneficiaries may start a claim"
-          : "your beneficiaries can start a claim — check in to reset"}
+          ? kind === "challenge" ? "until the owner's response window ends" : "until beneficiaries may start a claim"
+          : kind === "challenge" ? "the waiting period has ended — finalize to continue" : "beneficiaries may start a claim — the owner can check in to reset"}
       </p>
     </div>
   );

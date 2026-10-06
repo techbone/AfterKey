@@ -5,23 +5,23 @@ const steps = [
   {
     n: "01",
     title: "Create a vault",
-    body: "Deposit SOL or tokens into a vault only your wallet controls. Name your beneficiaries and their shares. Pick your timer — 6 months, 1 year, 2 years.",
+    body: "Deposit test SOL into your vault. Name your beneficiaries and their shares. Choose an inactivity period and a final response window.",
   },
   {
     n: "02",
     title: "Live your life",
-    body: "One click — or any vault activity — proves you're alive and resets the timer. We remind you long before it ever matters.",
+    body: "Check in, deposit, or withdraw to reset your timer. You keep control until release. Keep your own reminders while email notifications are being built.",
   },
   {
     n: "03",
     title: "If you go silent",
-    body: "After your timer ends, a beneficiary may start a claim. A challenge window opens with warnings on every channel. One signature from you cancels everything. True silence releases your assets — exactly as you configured.",
+    body: "After your timer ends, a beneficiary may start a claim. A separate response window gives you time to veto. If you do not respond before release, your beneficiaries can receive their shares.",
   },
 ];
 
 const guarantees = [
-  ["We never hold your keys", "Assets sit in a vault only your wallet controls. You can withdraw everything, instantly, at any time."],
-  ["No one inherits early", "Not beneficiaries, not us, not anyone. Time and silence are the only conditions — enforced by code, verifiable on-chain."],
+  ["No key handover", "Your wallet signs the plan. Beneficiaries use their own wallets. Withdraw or cancel before the vault is released."],
+  ["Two waiting periods", "The program checks both inactivity and a final response window before release. It measures silence, not verified death."],
   ["We are not required", "If this company vanished tomorrow, every inheritance still completes. Anyone can finalize a legitimate claim — permissionlessly."],
 ];
 
@@ -57,8 +57,7 @@ export default function Landing() {
           <span className="text-pulse">what happens to your SOL?</span>
         </h1>
         <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-mist">
-          Billions in crypto are already lost forever to death without key handover. Wills can&apos;t
-          sign transactions. Sharing your seed phrase is a loaded gun. AfterKey is a
+          Wills can&apos;t sign transactions. Sharing a seed phrase puts your keys at risk. AfterKey is a
           non-custodial dead-man&apos;s switch on Solana — your assets pass to the people you chose,
           without anyone ever touching your keys.
         </p>
@@ -95,10 +94,10 @@ export default function Landing() {
 
       <section className="relative z-10 mx-auto max-w-6xl px-6 py-16">
         <h2 className="text-center font-display text-3xl font-bold">
-          What we can <span className="text-pulse">never</span> do
+          Your plan. <span className="text-pulse">Clear rules.</span>
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm text-mist">
-          Security products should tell you their guarantees, not their features.
+          Know how inheritance works before asking your wallet to sign.
         </p>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {guarantees.map(([title, body]) => (
@@ -108,6 +107,7 @@ export default function Landing() {
             </div>
           ))}
         </div>
+        <p className="mt-8 text-center text-sm text-mist">Unaudited, upgradeable devnet preview · test assets only. <Link href="/security" className="text-pulse underline underline-offset-4">Understand the limits</Link></p>
       </section>
 
       <footer className="relative z-10 mx-auto max-w-6xl border-t border-edge px-6 py-10 text-sm text-mist">

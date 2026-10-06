@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "@/components/wallet-button";
+import { AppShell } from "@/components/app-shell";
+import { RpcError, TransactionFeedback, type TransactionReceipt } from "@/components/transaction-feedback";
 import { Countdown } from "@/components/countdown";
 import {
   useReceiveInheritance,
-  useFinalizeClaim,
   useInitiateClaim,
   useVaultsForMe,
   useVaultBalance,
@@ -24,33 +25,18 @@ function useNow(intervalMs = 1000) {
   return now;
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="min-h-screen">
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6">
-        <Link href="/" className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="heartbeat text-pulse">●</span> AfterKey
-        </Link>
-        <WalletButton />
-      </header>
-      <div className="mx-auto max-w-3xl px-6 pb-24">{children}</div>
-    </main>
-  );
-}
-
-function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
+function ClaimCard({ vault, me, onReceipt }: { vault: VaultData; me: string; onReceipt: (receipt: TransactionReceipt) => void }) {
   const now = useNow();
-  const { data: balance } = useVaultBalance(vault.address);
+  const { data: balance, isError: balanceError, refetch: refreshBalance } = useVaultBalance(vault.address);
   const initiate = useInitiateClaim();
-  const finalize = useFinalizeClaim();
   const receive = useReceiveInheritance();
 
   const myShare = vault.beneficiaries.find((b) => b.key.toBase58() === me);
-  const claimableAt = vault.lastCheckin.toNumber() + vault.inactivityPeriod.toNumber();
+  const claimableAt = vault.lastCheckin.toNumber() + vault.inactivityPeriod.toNumber() + 1;
   const challengeEndsAt =
-    vault.claimInitiatedAt.toNumber() + vault.challengePeriod.toNumber();
-  const busy = initiate.isPending || finalize.isPending || receive.isPending;
-  const err = initiate.error ?? finalize.error ?? receive.error ?? null;
+    vault.claimInitiatedAt.toNumber() + vault.challengePeriod.toNumber() + 1;
+  const busy = initiate.isPending || receive.isPending;
+  const action = [initiate, receive].reduce((latest, item) => item.submittedAt > latest.submittedAt ? item : latest);
 
   return (
     <div className="rounded-3xl border border-edge bg-surface p-8">
@@ -72,17 +58,19 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
       </div>
 
       <div className="mt-3 font-display text-3xl font-bold">
-        {balance !== undefined ? `${balance} SOL` : "…"}{" "}
+        {balance !== undefined ? `${balance.toLocaleString(undefined, { maximumFractionDigits: 9 })} SOL` : "…"}{" "}
         <span className="text-lg text-mist">in vault</span>
       </div>
+
+      {balanceError && <p role="alert" className="mt-3 text-sm text-danger">Balance unavailable. <button onClick={() => refreshBalance()} className="underline">Retry balance</button></p>}
+      {balance !== undefined && myShare && <p className="mt-2 text-sm text-pulse">Your expected share: {(balance * myShare.shareBps / 10_000).toLocaleString(undefined, { maximumFractionDigits: 9 })} SOL <span className="text-mist">before transaction fees; rounding is settled on-chain</span></p>}
 
       {/* State 1: active, not yet claimable */}
       {vault.state === "active" && now < claimableAt && (
         <div className="mt-8">
           <p className="text-sm text-mist">
-            This inheritance isn&apos;t available yet — the owner is still proving they&apos;re
-            alive. If they stay silent, you&apos;ll be able to start a claim when this reaches
-            zero.
+            The owner&apos;s inactivity timer is still running. You may start a claim if it
+            expires without another check-in.
           </p>
           <div className="mt-4">
             <Countdown deadline={claimableAt} totalSecs={vault.inactivityPeriod.toNumber()} />
@@ -100,7 +88,7 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
           </p>
           <button
             onClick={() => initiate.mutate(vault.address)}
-            disabled={busy}
+            disabled={busy || balance === undefined}
             className="mt-6 w-full rounded-2xl bg-pulse py-4 font-display text-xl font-bold text-[#04120b] transition hover:bg-[#2bd18c] disabled:opacity-50"
           >
             {initiate.isPending ? "Signing…" : "Start a claim"}
@@ -118,7 +106,7 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
             complete the inheritance.
           </p>
           <div className="mt-4">
-            <Countdown deadline={challengeEndsAt} totalSecs={vault.challengePeriod.toNumber()} />
+            <Countdown deadline={challengeEndsAt} totalSecs={vault.challengePeriod.toNumber()} kind="challenge" />
           </div>
         </div>
       )}
@@ -127,15 +115,15 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
       {vault.state === "inChallenge" && now >= challengeEndsAt && (
         <div className="mt-8">
           <p className="text-sm text-mist">
-            The waiting period has passed with no response. Complete the inheritance to move the
-            vault into release.
+            The waiting period has passed with no response. One approval releases the vault,
+            sends every beneficiary their SOL share, and completes the inheritance.
           </p>
           <button
-            onClick={() => finalize.mutate(vault.address)}
-            disabled={busy}
+            onClick={() => void receive.mutateAsync(vault.address).then(onReceipt).catch(() => {})}
+            disabled={busy || balance === undefined}
             className="mt-6 w-full rounded-2xl bg-pulse py-4 font-display text-xl font-bold text-[#04120b] transition hover:bg-[#2bd18c] disabled:opacity-50"
           >
-            {finalize.isPending ? "Signing…" : "Complete the inheritance"}
+            {receive.isPending ? "Signing…" : "Receive inheritance"}
           </button>
         </div>
       )}
@@ -144,19 +132,15 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
       {vault.state === "released" && (
         <div className="mt-8">
           <p className="text-sm text-mist">
-            {(balance ?? 0) > 0
-              ? "This inheritance is ready. Releasing sends every beneficiary their share in a single transaction — including yours — and closes the vault."
-              : "This inheritance was already released. Finish closing the vault to clear it from your list (its rent is refunded to you)."}
+            {balance === undefined ? "Loading the confirmed SOL balance…" : balance > 0
+              ? "This inheritance is ready. One approval sends every beneficiary their SOL share — including yours — and completes this inheritance."
+              : "SOL has already been distributed. Finish this inheritance to clear it from your list. Its on-chain record is retained for token recovery; record rent stays locked."}
           </p>
           <button
             onClick={() =>
-              receive.mutate({
-                vault: vault.address,
-                beneficiaries: vault.beneficiaries,
-                hasBalance: (balance ?? 0) > 0,
-              })
+              void receive.mutateAsync(vault.address).then(onReceipt).catch(() => {})
             }
-            disabled={busy}
+            disabled={busy || balance === undefined}
             className="mt-6 w-full rounded-2xl bg-pulse py-4 font-display text-xl font-bold text-[#04120b] transition hover:bg-[#2bd18c] disabled:opacity-50"
           >
             {receive.isPending ? "Signing…" : (balance ?? 0) > 0 ? "Receive inheritance" : "Finish & clear"}
@@ -164,35 +148,37 @@ function ClaimCard({ vault, me }: { vault: VaultData; me: string }) {
         </div>
       )}
 
-      {err && <p className="mt-4 text-sm break-all text-danger">{String(err).slice(0, 200)}</p>}
+      <TransactionFeedback action={action} />
     </div>
   );
 }
 
 export default function ClaimPage() {
   const { connected, publicKey } = useWallet();
-  const { data: vaults, isLoading } = useVaultsForMe();
+  const { data: vaults, isLoading, isError, refetch } = useVaultsForMe();
+  const [receipt, setReceipt] = useState<TransactionReceipt>();
+  useEffect(() => setReceipt(undefined), [publicKey?.toBase58()]);
 
   if (!connected || !publicKey) {
     return (
-      <Shell>
+      <AppShell>
         <div className="mx-auto max-w-md pt-24 text-center">
           <h1 className="font-display text-3xl font-bold">Claim an inheritance</h1>
           <p className="mt-3 text-mist">
-            Connect the wallet you were named with to see any vaults left to you.
+            Connect the wallet you were named with to see your inheritances. Use a browser with a Solana wallet installed and set it to devnet.
           </p>
           <div className="mt-8 flex justify-center">
             <WalletButton />
           </div>
         </div>
-      </Shell>
+      </AppShell>
     );
   }
 
   const me = publicKey.toBase58();
 
   return (
-    <Shell>
+    <AppShell>
       <div className="pt-6">
         <h1 className="font-display text-3xl font-bold">Inheritances naming you</h1>
         <p className="mt-2 text-sm text-mist">
@@ -200,19 +186,21 @@ export default function ClaimPage() {
         </p>
       </div>
 
+      <TransactionFeedback action={{ isPending: false, error: null, data: receipt?.walletAddress === publicKey?.toBase58() ? receipt : undefined }} />
       <div className="mt-8 space-y-8">
         {isLoading && <p className="text-mist">Searching the chain…</p>}
-        {!isLoading && !vaults?.length && (
+        {isError && <RpcError retry={() => refetch()} />}
+        {!isLoading && !isError && !vaults?.length && (
           <div className="rounded-3xl border border-dashed border-edge p-16 text-center">
             <p className="font-display text-xl font-bold">Nothing here</p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-mist">
-              No vault currently names this wallet as a beneficiary. If you were expecting one,
-              check you&apos;re connected with the right wallet.
+              No pending inheritance names this wallet. Completed and cancelled plans are cleared
+              from this list. If you expected an inheritance, check you&apos;re using the named wallet.
             </p>
           </div>
         )}
-        {vaults?.map((v) => <ClaimCard key={v.address.toBase58()} vault={v} me={me} />)}
+        {vaults?.map((v) => <ClaimCard key={v.address.toBase58()} vault={v} me={me} onReceipt={setReceipt} />)}
       </div>
-    </Shell>
+    </AppShell>
   );
 }
