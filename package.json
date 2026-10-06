@@ -1,6 +1,7 @@
 {
   "name": "afterkey",
   "private": true,
+  "type": "module",
   "version": "0.0.0",
   "description": "AfterKey — non-custodial crypto inheritance protocol on Solana",
   "workspaces": [
@@ -10,10 +11,15 @@
   "scripts": {
     "check:program": "cargo check --workspace",
     "build:program": "anchor build",
-    "build:devnet": "anchor build -- --features devnet-timing",
+    "build:sbf": "cargo build-sbf --tools-version v1.51 --manifest-path programs/proof-of-life/Cargo.toml -- --locked",
+    "build:devnet": "cargo build-sbf --tools-version v1.51 --manifest-path programs/proof-of-life/Cargo.toml -- --locked --features devnet-timing",
     "deploy:devnet": "npm run build:devnet && anchor deploy --provider.cluster devnet",
-    "pretest": "anchor build",
-    "test": "tsx --test tests/*.test.ts",
+    "pretest": "npm run build:sbf",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:unit": "node --import tsx --test tests/vault-input.test.ts",
+    "test:devnet": "npm run build:devnet && AFTERKEY_TEST_TIMING=devnet node --import tsx --test tests/lifecycle.test.ts tests/tokens.test.ts tests/atomic-transactions.test.ts tests/build-timing.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit --incremental false -p apps/web/tsconfig.json",
+    "check:deploy": "node --import tsx scripts/check-deploy.ts",
     "test:program": "anchor test"
   },
   "engines": {
@@ -25,8 +31,10 @@
     "@solana/web3.js": "^1.98.4",
     "@types/node": "^26.1.1",
     "anchor-litesvm": "^0.2.1",
-    "litesvm": "^1.2.1",
+    "litesvm": "^0.3.3",
     "tsx": "^4.23.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "bn.js": "^5.2.5",
+    "@types/bn.js": "^5.2.0"
   }
 }

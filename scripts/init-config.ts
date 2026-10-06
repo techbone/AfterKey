@@ -1,3 +1,4 @@
+import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 /**
  * One-time per cluster: initialize the Config PDA right after deploy.
  * The signer becomes admin — on mainnet this MUST be executed by the Squads
@@ -8,21 +9,21 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { AnchorProvider, Program, Wallet, type Idl } from "@coral-xyz/anchor";
+import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
 import { Connection, Keypair } from "@solana/web3.js";
 
 const ROOT = join(import.meta.dirname, "..");
 const RPC = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 
 async function main() {
-  const idl = JSON.parse(readFileSync(join(ROOT, "packages/program/idl.json"), "utf8")) as Idl;
+  const idl = JSON.parse(readFileSync(join(ROOT, "packages/program/idl.json"), "utf8")) as ProofOfLife;
   const kp = Keypair.fromSecretKey(
     Uint8Array.from(JSON.parse(readFileSync(join(homedir(), ".config/solana/id.json"), "utf8"))),
   );
   const provider = new AnchorProvider(new Connection(RPC, "confirmed"), new Wallet(kp), {
     commitment: "confirmed",
   });
-  const program = new Program(idl, provider);
+  const program = new Program<ProofOfLife>(idl, provider);
 
   const sig = await program.methods.initializeConfig().rpc();
   console.log("config initialized:", sig);

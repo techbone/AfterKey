@@ -1,3 +1,6 @@
+import BN from "bn.js";
+import assert from "node:assert/strict";
+import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 /**
  * Live devnet demo: the entire inheritance lifecycle in ~3 minutes against
  * the devnet-timing build (60s inactivity / 30s challenge minimums).
@@ -13,10 +16,8 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import {
   AnchorProvider,
-  BN,
   Program,
   Wallet,
-  type Idl,
 } from "@coral-xyz/anchor";
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
@@ -41,13 +42,13 @@ async function countdown(label: string, secs: number) {
 }
 
 async function main() {
-  const idl = JSON.parse(readFileSync(join(ROOT, "packages/program/idl.json"), "utf8")) as Idl;
+  const idl = JSON.parse(readFileSync(join(ROOT, "packages/program/idl.json"), "utf8")) as ProofOfLife;
   const ownerKp = Keypair.fromSecretKey(
     Uint8Array.from(JSON.parse(readFileSync(join(homedir(), ".config/solana/id.json"), "utf8"))),
   );
   const connection = new Connection(RPC, "confirmed");
   const provider = new AnchorProvider(connection, new Wallet(ownerKp), { commitment: "confirmed" });
-  const program = new Program(idl, provider);
+  const program = new Program<ProofOfLife>(idl, provider);
   const programId = new PublicKey(idl.address);
 
   const heirA = Keypair.generate(); // spouse — 60%
@@ -84,16 +85,11 @@ async function main() {
   console.log(`  ${link(sig)}`);
 
   log("Heir A tries to claim immediately — the protocol must refuse (owner is alive)");
-  try {
-    await program.methods
-      .initiateClaim()
-      .accounts({ claimer: heirA.publicKey, vault })
-      .signers([heirA])
-      .rpc();
-    throw new Error("BUG: early claim succeeded");
-  } catch (e) {
-    console.log(`  ✓ rejected: InactivityPeriodNotElapsed`);
-  }
+  await assert.rejects(
+    program.methods.initiateClaim().accounts({ claimer: heirA.publicKey, vault }).signers([heirA]).rpc(),
+    /InactivityPeriodNotElapsed/,
+  );
+  console.log("  ✓ rejected: InactivityPeriodNotElapsed");
 
   log("Owner checks in (proof of life) — timer resets");
   sig = await program.methods.checkIn().accounts({ vault }).rpc();
@@ -142,6 +138,10 @@ async function main() {
       { pubkey: heirB.publicKey, isSigner: false, isWritable: true },
     ])
     .rpc();
+  console.log(`  ${link(sig)}`);
+
+  log("Completing the inheritance; authority record remains for token recovery");
+  sig = await program.methods.closeReleasedVault().accounts({ cranker: ownerKp.publicKey, vault }).rpc();
   console.log(`  ${link(sig)}`);
 
   const balA = await connection.getBalance(heirA.publicKey);

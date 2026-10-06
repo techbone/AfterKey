@@ -7,15 +7,17 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { BN, Program } from "@coral-xyz/anchor";
+import BN from "bn.js";
+import { Program } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fromWorkspace, LiteSVMProvider } from "anchor-litesvm";
 import type { LiteSVM } from "litesvm";
+import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 
 export const ROOT = join(import.meta.dirname, "..");
 export const IDL = JSON.parse(
-  readFileSync(join(ROOT, "target/idl/proof_of_life.json"), "utf8"),
-);
+  readFileSync(join(ROOT, "packages/program/idl.json"), "utf8"),
+) as ProofOfLife;
 
 export const DAY = 86_400;
 export const INACTIVITY = new BN(180 * DAY); // 6 months
@@ -25,7 +27,7 @@ export const SOL = LAMPORTS_PER_SOL;
 export interface World {
   client: LiteSVM;
   provider: LiteSVMProvider;
-  program: Program;
+  program: Program<ProofOfLife>;
   programId: PublicKey;
   /** provider wallet — also the config admin */
   owner: Keypair;
@@ -44,7 +46,7 @@ export interface VaultCtx {
 export async function newWorld(): Promise<World> {
   const client = fromWorkspace(ROOT);
   const provider = new LiteSVMProvider(client);
-  const program = new Program(IDL, provider);
+  const program = new Program<ProofOfLife>(IDL, provider);
   const programId = new PublicKey(IDL.address);
   const owner = provider.wallet.payer;
   const heirA = Keypair.generate();

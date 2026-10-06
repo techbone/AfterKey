@@ -1,0 +1,34 @@
+name: Verify AfterKey
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run build --workspace @afterkey/web
+      - name: Install pinned Solana build tools
+        run: |
+          curl -fsSL --retry 3 https://github.com/anza-xyz/agave/releases/download/v2.1.0/solana-release-x86_64-unknown-linux-gnu.tar.bz2 -o "$RUNNER_TEMP/solana.tar.bz2"
+          tar -xjf "$RUNNER_TEMP/solana.tar.bz2" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/solana-release/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/solana/v1.51
+            ~/.cargo/registry
+          key: ${{ runner.os }}-sbf-v1.51-${{ hashFiles('Cargo.lock') }}
+      - name: Standard timing build and full contract suite
+        run: npm test
+      - name: Short timing build and lifecycle regressions
+        run: npm run test:devnet

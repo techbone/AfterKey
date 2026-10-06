@@ -2,6 +2,9 @@
 members = ["programs/*"]
 resolver = "2"
 
+[workspace.metadata.solana]
+tools-version = "v1.51"
+
 [profile.release]
 overflow-checks = true
 lto = "fat"
