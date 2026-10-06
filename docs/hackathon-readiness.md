@@ -91,24 +91,29 @@ Token support remains part of the original MVP. Fix closure regardless of demo s
 
 ## Your two-wallet devnet test checklist
 
-Use a browser with Phantom/Solflare/Backpack installed. Set the wallet to devnet. Prepare separate **Owner A** and **Heir B**, both funded with test SOL for fees; optionally **Heir C** for split checks. Use 2-minute inactivity and 1-minute challenge presets. Never use real assets for this demo. Record vault addresses and transaction signatures. These checks are pending, not already passed.
+Use the [published app](https://after-key-web.vercel.app) in a browser with Phantom/Solflare/Backpack installed. Select **Solana devnet**. Prepare separate **Owner A** and **Heir B**, both funded with test SOL for fees; optionally **Heir C** for split checks. Create fresh vaults under program `DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`: old-program vaults are not migrated. Use the **2-minute inactivity** and **1-minute challenge** presets. Record vault addresses, transaction signatures and screenshots. The founder tested the previous release; the current signed browser checklist remains pending. The program-level live smoke and automated evidence above are separate.
+
+Create/fund, cancel, and receive/complete are each one atomic transaction in the current SOL interface. A rejected signature leaves that action unapplied. The on-chain Closed record remains after completion or cancellation, while the active lists hide it. Its rent is retained, not refunded. When confirmation is uncertain, refresh and check the transaction in Explorer before repeating an action.
 
 | Step | Where / action | Pass condition |
 | --- | --- | --- |
-| 1 | Owner A: `/app` → new vault; choose B at 100%; deposit 0.1 test SOL | Vault appears Active; escrow receives exactly 100,000,000 lamports; creation and deposit receipts exist. |
-| 2 | Owner dashboard: check in after several seconds | On-chain last-check-in advances and countdown resets. |
-| 3 | Add 0.02 SOL, withdraw 0.01 SOL | Escrow becomes 0.11 SOL; timer resets on both successful actions. Distinguish wallet fees/rent from escrow changes. |
-| 4 | Heir B: `/claim` before inactivity elapses | Correct vault/share appears; early claim unavailable/rejected. A different unrelated wallet sees no inheritance. |
-| 5 | Wait past the last owner activity + inactivity timer; B starts claim | Vault becomes InChallenge; assets remain in escrow; owner sees the challenge and its actual end time. |
-| 6 | Owner A vetoes | One successful veto transaction restores Active, clears the claim, resets timer; B cannot finalize the old claim. |
-| 7 | Wait again; B reclaims; wait strictly past challenge end | Finalize succeeds; state becomes Released; no payout before distribution. |
-| 8 | B receives inheritance and closes | Escrow is drained; B receives the allocation; separate fee/rent effects accounted for; account closes and disappears after refresh. |
-| 9 | New funded vault: owner cancels | Escrow funds return to A and account rent is refunded; vault no longer appears for B. |
-| 10 | New zero-deposit vault: initiate challenge, then owner cancels | Must succeed after the cancellation fix; currently expected to expose the missing veto step. |
-| 11 | New vault with B/C at 60/40 | Distribution equals exact integer-lamport shares, with rounding remainder to the last beneficiary; total payout equals escrow balance. |
-| 12 | Reject initial create signature; then separately reject deposit after creation | First case creates nothing; second case exposes the already-created vault and offers funding/recovery without creating another vault. |
-| 13 | Reject closure after payout; reconnect/switch wallets/refresh | Payout is not repeated; completion can resume; connected identity and displayed vaults stay correct. |
-| 14 | Invalid/duplicate address, bad share sum, negative/invalid deposit; unavailable RPC | Helpful validation/retry; an RPC failure is never reported as 'no vaults'. |
+| 1 | Owner A: `/app/new`; name B at 100%; fund with 0.1 test SOL | People → Timing → Review & fund shows correct details. One wallet approval creates and funds the vault. Active escrow receives exactly 100,000,000 lamports; a confirmed receipt and copyable beneficiary instructions remain visible. |
+| 2 | Owner dashboard: click `I'm alive` after several seconds | Last check-in advances; inactivity countdown restarts from the latest owner activity. |
+| 3 | While Active, deposit 0.02 SOL then withdraw 0.01 SOL | Escrow becomes 0.11 SOL; each successful action resets inactivity. Wallet fees and initial record rent are separate from escrow funds. |
+| 4 | Heir B: `/claim` before inactivity elapses; then connect an unrelated wallet | B sees the right owner, vault and share, with early claim unavailable. The unrelated wallet sees no inheritance naming it. |
+| 5 | Wait past the last owner activity + 2 minutes; B clicks `Start a claim` | State becomes InChallenge; assets remain in escrow; a separate 1-minute challenge countdown appears. Refresh A's dashboard to see the warning. |
+| 6 | A clicks `I'm alive — cancel this claim` | One veto returns Active, clears the claim and resets inactivity. B cannot complete the cancelled claim. |
+| 7 | Wait again, B starts another claim, then wait strictly past the challenge countdown | Before expiry, the receive action is unavailable. After expiry, `Receive inheritance` uses one approval to finalize, pay and mark Closed together. Escrow drains; B receives the full allocation before transaction fees. The active card disappears; the receipt remains and the Closed record is visible in Explorer. |
+| 8 | New funded Active vault: A clicks `Cancel this vault` and confirms | One approval returns all SOL escrow and marks Closed. The vault disappears from A/B's active lists. Small vault-record rent stays locked; it is not refunded. |
+| 9 | New zero-deposit vault: B starts a claim after inactivity; A cancels the entire vault during the challenge | Cancellation succeeds even with zero escrow: veto plus closure occurs in one transaction. It permanently closes the plan and prevents new claims. |
+| 10 | New vault with B/C at 60/40 and 0.1 SOL; let inheritance complete | A single receive action pays both wallets: 0.06 SOL to B and 0.04 SOL to C before the sender's fees. General integer-lamport rounding goes to the last beneficiary; allocations sum to the escrow balance. |
+| 11 | On separate attempts, reject creation, cancellation and receiving in the wallet | Rejected creation creates no vault or deposit. Rejected cancellation/receiving leaves the previous state and funds intact; refresh to confirm. No partial payout or second approval is required for these actions. |
+| 12 | Enter invalid/duplicate addresses, incorrect share totals, negative amounts or more than 9 SOL decimal places; then interrupt RPC access | Invalid inputs show actionable validation before signing. A tiny deposit/withdrawal remainder below the queried rent floor is prevented. RPC failure shows an error/retry, not an empty-vault message. |
+| 13 | Refresh, reconnect and switch wallets after successes and rejections; inspect narrow/mobile layout | Correct wallet-specific vaults and receipts appear, without duplicate funding or stale receipts belonging to another wallet. Form, countdown, buttons and Explorer links remain usable. |
+
+For each case, record **Pass / Fail / Not tested**. For failures, include the step, vault address, transaction signature if present, expected outcome, actual outcome and screenshot. Count a confirmed Explorer transaction separately from an unconfirmed wallet approval.
+
+Post-closure SOL/SPL recovery uses program/CLI instructions today; the browser hides Closed records and has no recovery/history screen yet. Owner cancellation permits owner-only recovery. Completed inheritance permits distribution to the stored beneficiaries and forbids owner reclamation. Those authority cases are covered in the automated suites; later SOL recovery after owner cancellation was also exercised on devnet. SPL token management, Token-2022 and notifications are not browser-test features in this release.
 
 After a contract fix and new deployment, repeat the affected lifecycle tests and retain evidence. Automated adversarial testing should also cover unauthorized signers, exact deadline boundaries, paused-program exit actions, multiple token mints and attempted closure with tokens remaining.
 
