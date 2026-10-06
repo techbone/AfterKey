@@ -6,6 +6,8 @@ A crypto inheritance plan on Solana. An owner deposits assets into a program-con
 
 **Status:** unaudited, upgradeable devnet prototype. The web interface supports SOL. SPL-token instructions exist in the program; token management and email notifications are not available in the web interface yet. Use test assets only. Local source changes are not automatically reflected in the public deployment.
 
+Current devnet program: [`DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`](https://explorer.solana.com/address/DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7?cluster=devnet). The October 6 replacement deployment has verified bytecode parity and live creation, cancellation and recovery receipts in [devnet-deployment.json](docs/devnet-deployment.json). It uses a fresh address after loss of the original upgrade key; old vaults remain under the original program.
+
 ## Run the web app
 
 Requirements: Node.js 22 and npm.

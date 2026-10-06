@@ -1,0 +1,26 @@
+{
+  "cluster": "devnet",
+  "programId": "DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7",
+  "programData": "bFmBAssFu1HyT9XqBSmX8QbLba7adAMyFkmKRurkeHN",
+  "upgradeAuthority": "Bs7Uok84x4tiWy3hjohmRFcTjVJxtvXzE39WBQp54qSM",
+  "slot": 508071667,
+  "artifactSha256": "1fb7171ac9db3b45f54184a8098b377afbaf779109978097a8421a977f19dd09",
+  "artifactBytes": 405320,
+  "config": "AhSmarVxwjDgRke5dgsw1KRV9sYchJuUrySsJFyHbGRr",
+  "configSignature": "2N3Q7FHcdoD5qD17bQWQY7fuxq1Ht6Hk25pKor7bD1SYtZBEuims3TJ3C9uPfqtkoPo1o6wDSuTevweF1cX2B71P",
+  "minInactivitySeconds": 60,
+  "minChallengeSeconds": 30,
+  "bytecodeMatches": true,
+  "verifiedAt": "2026-10-06T11:03:49.363Z",
+  "liveSmoke": {
+    "vault": "nMQPfN8XDgXKTXK7N7r1xfR3mKLkZsNoLWpy7DcKgks",
+    "testDepositLamports": 10000000,
+    "createSignature": "3gzA6Unp3phktXXnUNPsDGdkzxhPdUh8y38p5WCvUBmjmAbtP8RhCD5MRasKJv3uQcnj9rjCDF369KMQWG4zgPAW",
+    "cancelSignature": "4XLcQThxz9bQ2XD1j3rukfRrnYMMd8pbxkTtqDvyfRCfbW7Av28qjispDsmFsStdsKBKhcNhadjk2mzmVpwWcQgj",
+    "recoverySignature": "543iLagrzPoBFf7We7ddj1hCxRtcsyfAm4h7L5zTEcmFGD4nRZPcuPmcnGDdEXSX78mP19doHmNniMTthn1caYvH",
+    "closedRecordRetained": true,
+    "escrowBalanceLamports": 0
+  },
+  "deploymentSignature": "FGKpf4cFgsy2xxZWhCyHnRZRsif948iHH1EA6kRUUYvJhdCFsmb3KKwW6ogc8UzEZwysgKS6nHfsuuWGVDMhAQ8",
+  "sourceCommit": "887a4466df725db482d47e270d6f7e12b6668022"
+}

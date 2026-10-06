@@ -32,7 +32,7 @@ The signer requirement prevents the default system-program pubkey from becoming 
 
 ## Deployment and operations
 
-This change needs a reviewed program upgrade; changing the website alone does not update program behavior. Build the intended timing variant and compare its bytes with the public deployment using `npm run check:deploy` after upgrade. Existing live records use the same layout and can continue through the updated instructions.
+Changing the website alone does not update program behavior. The October 6 devnet rollout deployed this policy at a fresh address after loss of the original upgrade key; see [devnet-deployment.json](devnet-deployment.json). Old vaults remain under the original program, with no automatic migration or new recovery rights. The patch preserves instruction and account layouts, so an authorized upgrade in place would have supported existing records. Build the intended timing variant and compare its bytes with the public deployment using `npm run check:deploy` after any later upgrade.
 
 Records already deallocated by the previous program cannot be recovered through this change. The frontend must not promise a vault-account rent refund under the updated behavior. Token ATA rent still returns when `withdraw_token` or `distribute_token` closes an emptied ATA.
 

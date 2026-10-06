@@ -1,12 +1,22 @@
 # AfterKey hackathon readiness — October 6, 2026
 
-Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. It does not certify the deployed bytecode matches this source or that wallet transactions work end to end.
+Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The current rollout below verifies program bytecode and signed program smoke transactions; the new browser flow still needs a fresh two-wallet walkthrough. Earlier assessments are retained as historical evidence.
 
-## Follow-up milestone — local candidate implemented
+## Current rollout — fresh devnet program verified
+
+The founder confirmed the original upgrade-authority key was lost during a PC wipe and no recovery backup remains. A fresh program was deployed at [`DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`](https://explorer.solana.com/address/DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7?cluster=devnet). This is a replacement deployment, not an upgrade or migration of the original program's vaults. The old program was inventoried read-only: one released vault, zero SOL escrow and no classic SPL token accounts owned by that vault.
+
+The new authority and config admin are `Bs7Uok84x4tiWy3hjohmRFcTjVJxtvXzE39WBQp54qSM`. Deployment keys have an authenticated encrypted backup outside the repository; its password is saved in macOS Keychain. Independent off-machine backup remains a founder responsibility, as described in [devnet-key-recovery.md](devnet-key-recovery.md).
+
+At slot `508071667`, deployed bytecode matched the tested 405,320-byte devnet artifact (SHA256 `1fb7171ac9db3b45f54184a8098b377afbaf779109978097a8421a977f19dd09`). The config is unpaused with minimum inactivity **60 seconds** and challenge **30 seconds**. A signed live check atomically created/funded a vault with 0.01 test SOL, cancelled it while retaining its Closed record, and successfully recovered a subsequent SOL transfer after closure. Transaction evidence is in [devnet-deployment.json](devnet-deployment.json).
+
+Verification: **77 standard tests passed**, **19 devnet lifecycle/recovery/timing tests passed**, both TypeScript projects passed, and the production web build passed. Upload instructions were exercised against loader-v3 in LiteSVM, including wrong-authority rejection. The frontend/IDL now reference the replacement address. Next gate: a fresh owner/beneficiary browser walkthrough on the published app, followed by reminders and submission materials. A remote CI run is not yet evidenced by this report.
+
+## Earlier milestone — local reliability candidate
 
 The founder reports completing the baseline devnet walkthrough. That is manual evidence for the previous deployment, not a retest of this new candidate.
 
-On branch `codex/hackathon-reliability`, the first improvement milestone adds atomic SOL creation/cancellation/finalization/payout, exact amount/share validation, rent-floor checks, query errors/retry, durable wallet-scoped receipts, and a three-step review-before-signing flow with copyable beneficiary instructions. Owner/inheritance navigation and a trust page now show the actual devnet scope; unsupported notification promises were removed. Closed vaults retain their record and rent to preserve recovery rights, as specified in [closure-recovery.md](closure-recovery.md).
+The first improvement milestone, subsequently pushed directly to `main`, adds atomic SOL creation/cancellation/finalization/payout, exact amount/share validation, rent-floor checks, query errors/retry, durable wallet-scoped receipts, and a three-step review-before-signing flow with copyable beneficiary instructions. Owner/inheritance navigation and a trust page now show the actual devnet scope; unsupported notification promises were removed. Closed vaults retain their record and rent to preserve recovery rights, as specified in [closure-recovery.md](closure-recovery.md).
 
 Verification for the candidate: Rust native compile check passed; standard SBF build executed **75 passing tests**; short-timer SBF build executed **19 passing lifecycle/recovery/timing tests**. Both TypeScript projects and the production web build passed. The disconnected browser routes were inspected at a 375px viewport without horizontal overflow or console errors. The newly signed browser flow still needs a wallet retest after deployment. A CI workflow is included; its remote run has not been observed.
 
@@ -18,7 +28,7 @@ The competition in the supplied registration screenshot is **Crypto World's Fair
 
 The [official rules, sections 5–6](https://colosseum.com/legal/Crypto%20World's%20Fair%20Hackathon%20Rules.pdf) set the deadline at **October 12, 2026, 11:59 p.m. Pacific**, which converts to **October 13, 2026, 7:59 a.m. in Lagos**. Recheck the portal before submission. Our internal target should be October 9–10, leaving time to resolve upload problems.
 
-All 12 commits in this checkout predate the September 14 competition start. The primary checkout has the same HEAD and no tracked/untracked changes reported by Git. No other project branch is present locally. The [official FAQ](https://colosseum.com/hackathon) allows pre-existing code, requires disclosure of past work, and says judging focuses on work completed during the competition. Treat the July product as the baseline, then document real improvements, dates, and tester feedback. Do not rewrite history to suggest the baseline was built during this event. Work elsewhere remains unverified.
+All 12 commits in the July assessment baseline predate the September 14 competition start. New October work is recorded separately above and in subsequent commits on `main`. The [official FAQ](https://colosseum.com/hackathon) allows pre-existing code, requires disclosure of past work, and says judging focuses on work completed during the competition. Treat the July product as the baseline, then document real improvements, dates, and tester feedback. Do not rewrite history to suggest the baseline was built during this event. Work elsewhere remains unverified.
 
 The FAQ requests a **2–3 minute presentation video** and a **product demo video no longer than 3 minutes**, plus team information, a logo/graphic, repository, integrations, go-to-market strategy and demand validation. The existing demo script helps with the demo video; it is not evidence that either video has been recorded. Every teammate must register and be included in the submission.
 
