@@ -3,7 +3,7 @@
 
 export type Cluster = "localnet" | "devnet" | "mainnet-beta";
 
-export const PROGRAM_ID = "6njwUjht6L2si9uEoPJHgYwXskMCx7P1Po5DuSYbFPvP";
+export const PROGRAM_ID = "DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7";
 
 export const RPC_URLS: Record<Cluster, string> = {
   localnet: "http://127.0.0.1:8899",

@@ -4,9 +4,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
-import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction } from "@solana/web3.js";
+import BN from "bn.js";
 import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 import { withDeploymentKeys } from "./devnet-keystore.ts";
+import { cancelVaultTransaction, createVaultTransaction, vaultAddresses } from "../apps/web/src/lib/vault-transactions.ts";
 
 const ROOT = join(import.meta.dirname, "..");
 const RPC = "https://api.devnet.solana.com";
@@ -70,7 +72,8 @@ async function main() {
 
     const signer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(readFileSync(paths.authority, "utf8"))));
     try {
-      const program = new Program<ProofOfLife>(idl, new AnchorProvider(connection, new Wallet(signer), { commitment: "confirmed" }));
+      const provider = new AnchorProvider(connection, new Wallet(signer), { commitment: "confirmed" });
+      const program = new Program<ProofOfLife>(idl, provider);
       const [config] = PublicKey.findProgramAddressSync([Buffer.from("config")], programId);
       let configSignature: string | null = null;
       if (!(await connection.getAccountInfo(config))) configSignature = await program.methods.initializeConfig().rpc();
@@ -83,11 +86,27 @@ async function main() {
       if (!data || data.data[12] !== 1 || !new PublicKey(data.data.subarray(13, 45)).equals(authority)) throw new Error("Deployed upgrade authority differs from signer.");
       const deployed = data.data.subarray(45);
       if (deployed.length < bytes.length || !bytes.equals(deployed.subarray(0, bytes.length)) || !deployed.subarray(bytes.length).every(byte => byte === 0)) throw new Error("Deployed bytecode does not match the reviewed artifact.");
+      // Confirm the closure/recovery behavior on devnet using 0.01 test SOL.
+      // The authority remains owner throughout; the test beneficiary is never paid.
+      const vaultId = new BN(Date.now());
+      const addressesForVault = vaultAddresses(programId, authority, vaultId);
+      const created = await createVaultTransaction(program, authority, vaultId, 60, 30, [{ key: Keypair.generate().publicKey, shareBps: 10_000 }], 10_000_000n);
+      const createSignature = await provider.sendAndConfirm(created.transaction);
+      const cancelSignature = await provider.sendAndConfirm(await cancelVaultTransaction(program, authority, created.vault, BigInt(await connection.getBalance(addressesForVault.solEscrow)), false));
+      const closed = await program.account.vault.fetch(created.vault);
+      if (!("closed" in closed.state) || !closed.claimer.equals(PublicKey.default) || await connection.getBalance(addressesForVault.solEscrow) !== 0) throw new Error("Live cancellation did not retain the intended Closed owner-recovery record.");
+      const lateRecovery = new Transaction().add(
+        SystemProgram.transfer({ fromPubkey: authority, toPubkey: addressesForVault.solEscrow, lamports: 10_000_000 }),
+        await program.methods.withdrawSol(new BN(10_000_000)).accountsPartial({ owner: authority, vault: created.vault }).instruction()
+      );
+      const recoverySignature = await provider.sendAndConfirm(lateRecovery);
+      if (await connection.getBalance(addressesForVault.solEscrow) !== 0 || !("closed" in (await program.account.vault.fetch(created.vault)).state)) throw new Error("Live recovery after closure failed.");
       const receipt = {
         cluster: "devnet", programId: addresses.program, programData: dataAddress.toBase58(), upgradeAuthority: addresses.authority,
         slot: Number(data.data.readBigUInt64LE(4)), artifactSha256, artifactBytes: bytes.length,
         config: config.toBase58(), configSignature, minInactivitySeconds: 60, minChallengeSeconds: 30,
-        bytecodeMatches: true, verifiedAt: new Date().toISOString()
+        bytecodeMatches: true, verifiedAt: new Date().toISOString(),
+        liveSmoke: { vault: created.vault.toBase58(), testDepositLamports: 10_000_000, createSignature, cancelSignature, recoverySignature, closedRecordRetained: true, escrowBalanceLamports: 0 }
       };
       writeFileSync(join(ROOT, "docs/devnet-deployment.json"), JSON.stringify(receipt, null, 2) + "\n");
       console.log(JSON.stringify(receipt, null, 2));

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/proof_of_life.json`.
  */
 export type ProofOfLife = {
-  "address": "6njwUjht6L2si9uEoPJHgYwXskMCx7P1Po5DuSYbFPvP",
+  "address": "DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7",
   "metadata": {
     "name": "proofOfLife",
     "version": "0.1.0",

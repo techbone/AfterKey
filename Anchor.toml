@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-proof_of_life = "6njwUjht6L2si9uEoPJHgYwXskMCx7P1Po5DuSYbFPvP"
+proof_of_life = "DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7"
 
 [programs.localnet]
-proof_of_life = "6njwUjht6L2si9uEoPJHgYwXskMCx7P1Po5DuSYbFPvP"
+proof_of_life = "DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7"
 
 [registry]
 url = "https://api.apr.dev"
