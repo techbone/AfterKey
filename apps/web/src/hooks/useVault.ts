@@ -1,17 +1,18 @@
 "use client";
 
-import { BN } from "@coral-xyz/anchor";
-import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import BN from "bn.js";
+import { type IdlAccounts } from "@coral-xyz/anchor";
+import { PublicKey, LAMPORTS_PER_SOL, type Transaction } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProgram } from "@/lib/useProgram";
-import { escrowPda } from "@/lib/solana";
+import { escrowPda, CLUSTER } from "@/lib/solana";
+import { solToLamports, validateEscrowBalance } from "@/lib/vault-validation";
+import { cancelVaultTransaction, createVaultTransaction, receiveInheritanceTransaction } from "@/lib/vault-transactions";
+import type { TransactionReceipt } from "@/components/transaction-feedback";
+import type { ProofOfLife } from "../../../../packages/program/proof_of_life";
 
-export interface Beneficiary {
-  key: PublicKey;
-  shareBps: number;
-}
-
+export interface Beneficiary { key: PublicKey; shareBps: number }
 export interface VaultData {
   address: PublicKey;
   owner: PublicKey;
@@ -25,233 +26,160 @@ export interface VaultData {
   beneficiaries: Beneficiary[];
 }
 
-// anchor renders the state enum as e.g. { active: {} }
-function stateName(s: Record<string, unknown>): VaultData["state"] {
-  return Object.keys(s)[0] as VaultData["state"];
+function mapVault(address: PublicKey, account: IdlAccounts<ProofOfLife>["vault"]): VaultData {
+  return { ...account, address, state: Object.keys(account.state)[0] as VaultData["state"] };
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function mapVault(publicKey: PublicKey, account: any): VaultData {
-  return {
-    address: publicKey,
-    owner: account.owner,
-    vaultId: account.vaultId,
-    state: stateName(account.state),
-    inactivityPeriod: account.inactivityPeriod,
-    challengePeriod: account.challengePeriod,
-    lastCheckin: account.lastCheckin,
-    claimInitiatedAt: account.claimInitiatedAt,
-    claimer: account.claimer,
-    beneficiaries: account.beneficiaries,
-  };
-}
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-/** All vaults owned by the connected wallet (memcmp on owner at offset 8). */
 export function useMyVaults() {
   const { program, owner } = useProgram();
+  const { connection } = useConnection();
   return useQuery({
-    queryKey: ["vaults", owner?.toBase58()],
+    queryKey: ["vaults", connection.rpcEndpoint, owner?.toBase58()],
     enabled: !!owner,
     refetchInterval: 15_000,
     queryFn: async (): Promise<VaultData[]> => {
-      const accounts = await program.account.vault.all([
-        { memcmp: { offset: 8, bytes: owner!.toBase58() } },
-      ]);
-      return accounts.map(({ publicKey, account }) => mapVault(publicKey, account));
+      const accounts = await program.account.vault.all([{ memcmp: { offset: 8, bytes: owner!.toBase58() } }]);
+      return accounts.map(({ publicKey, account }) => mapVault(publicKey, account)).filter(v => v.state !== "closed");
     },
   });
 }
 
-/**
- * Vaults naming the connected wallet as a beneficiary. Beneficiaries live in a
- * variable-offset Vec, so we can't memcmp — we fetch all vaults and filter
- * client-side. Fine for devnet/MVP scale; the backend indexer (Milestone 4)
- * replaces this with a proper query.
- */
 export function useVaultsForMe() {
   const { program, owner } = useProgram();
+  const { connection } = useConnection();
   return useQuery({
-    queryKey: ["claimable", owner?.toBase58()],
+    queryKey: ["claimable", connection.rpcEndpoint, owner?.toBase58()],
     enabled: !!owner,
     refetchInterval: 10_000,
     queryFn: async (): Promise<VaultData[]> => {
       const accounts = await program.account.vault.all();
-      return accounts
-        .map(({ publicKey, account }) => mapVault(publicKey, account))
-        .filter((v) => v.beneficiaries.some((b) => b.key.equals(owner!)))
-        .filter((v) => v.state !== "closed");
+      return accounts.map(({ publicKey, account }) => mapVault(publicKey, account))
+        .filter(v => v.beneficiaries.some(b => b.key.equals(owner!)) && v.state !== "closed");
     },
   });
 }
 
-/** SOL balance of a vault's escrow. */
 export function useVaultBalance(vault: PublicKey | null) {
   const { connection } = useConnection();
   return useQuery({
-    queryKey: ["vault-balance", vault?.toBase58()],
+    queryKey: ["vault-balance", connection.rpcEndpoint, vault?.toBase58()],
     enabled: !!vault,
     refetchInterval: 15_000,
-    queryFn: async () => {
-      const lamports = await connection.getBalance(escrowPda(vault!));
-      return lamports / LAMPORTS_PER_SOL;
-    },
+    queryFn: async () => (await connection.getBalance(escrowPda(vault!), "confirmed")) / LAMPORTS_PER_SOL,
   });
 }
 
-function useVaultMutation<TArgs>(fn: (args: TArgs) => Promise<string>) {
+function useVaultMutation<TArgs>(fn: (args: TArgs) => Promise<TransactionReceipt>) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: fn,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vaults"] });
-      queryClient.invalidateQueries({ queryKey: ["vault-balance"] });
-      queryClient.invalidateQueries({ queryKey: ["claimable"] });
+    // A confirmation timeout may still have landed on-chain. Always refresh.
+    onSettled: async () => {
+      await Promise.all(["vaults", "vault-balance", "claimable"].map(key =>
+        queryClient.invalidateQueries({ queryKey: [key] }),
+      ));
     },
   });
 }
 
 export function useCheckIn() {
   const { program } = useProgram();
-  return useVaultMutation((vault: PublicKey) =>
-    program.methods.checkIn().accounts({ vault }).rpc(),
-  );
+  return useVaultMutation(async (vault: PublicKey) => ({
+    signature: await program.methods.checkIn().accounts({ vault }).rpc(),
+    message: "Check-in confirmed. Your inactivity timer has reset.",
+  }));
 }
 
 export function useVetoClaim() {
   const { program } = useProgram();
-  return useVaultMutation((vault: PublicKey) =>
-    program.methods.vetoClaim().accounts({ vault }).rpc(),
-  );
+  return useVaultMutation(async (vault: PublicKey) => ({
+    signature: await program.methods.vetoClaim().accounts({ vault }).rpc(),
+    message: "Claim cancelled. Your vault is active and the timer has reset.",
+  }));
 }
 
-/** Beneficiary starts a claim on a vault whose inactivity period has elapsed. */
 export function useInitiateClaim() {
   const { program, owner } = useProgram();
-  return useVaultMutation((vault: PublicKey) =>
-    program.methods.initiateClaim().accounts({ claimer: owner!, vault }).rpc(),
-  );
+  return useVaultMutation(async (vault: PublicKey) => ({
+    signature: await program.methods.initiateClaim().accounts({ claimer: owner!, vault }).rpc(),
+    message: "Claim started. The owner can respond during the challenge window.",
+  }));
 }
 
-/** Anyone can finalize once the challenge window has passed (permissionless). */
 export function useFinalizeClaim() {
   const { program, owner } = useProgram();
-  return useVaultMutation((vault: PublicKey) =>
-    program.methods.finalizeClaim().accounts({ cranker: owner!, vault }).rpc(),
-  );
+  return useVaultMutation(async (vault: PublicKey) => ({
+    signature: await program.methods.finalizeClaim().accounts({ cranker: owner!, vault }).rpc(),
+    message: "Waiting period completed. The inheritance is ready for distribution.",
+  }));
 }
 
-/**
- * Receive an inheritance: release SOL to all beneficiaries per their shares,
- * then finish the vault so its lifecycle completes (state → closed) and it
- * stops appearing as claimable. Permissionless. The remaining accounts MUST be
- * the beneficiary wallets in stored order — the program validates each against
- * on-chain state and pays each its share.
- *
- * `hasBalance` lets us skip the distribute transaction (and its signature) for
- * an already-drained vault — e.g. finishing one that was distributed earlier.
- */
-export function useReceiveInheritance() {
+function useAtomicVaultAction() {
   const { program, owner } = useProgram();
-  return useVaultMutation(
-    async ({
-      vault,
-      beneficiaries,
-      hasBalance,
-    }: {
-      vault: PublicKey;
-      beneficiaries: Beneficiary[];
-      hasBalance: boolean;
-    }) => {
-      if (hasBalance) {
-        await program.methods
-          .distributeSol()
-          .accounts({ cranker: owner!, vault })
-          .remainingAccounts(
-            beneficiaries.map((b) => ({ pubkey: b.key, isSigner: false, isWritable: true })),
-          )
-          .rpc();
-      }
-      return program.methods
-        .closeReleasedVault()
-        .accounts({ cranker: owner!, vault })
-        .rpc();
-    },
-  );
+  const { connection } = useConnection();
+  const send = async (transaction: Transaction) => {
+    if (!owner || !program.provider.sendAndConfirm) throw new Error("Connect your wallet first.");
+    return program.provider.sendAndConfirm(transaction, [], { commitment: "confirmed" });
+  };
+  return { program, owner, connection, send };
+}
+
+export function useReceiveInheritance() {
+  const { program, owner, connection, send } = useAtomicVaultAction();
+  return useVaultMutation(async (vault: PublicKey) => {
+    if (!owner) throw new Error("Connect your wallet first.");
+    const account = await program.account.vault.fetch(vault);
+    const balance = BigInt(await connection.getBalance(escrowPda(vault), "confirmed"));
+    const tx = await receiveInheritanceTransaction(program, owner, vault, account.beneficiaries, balance, "inChallenge" in account.state);
+    return { signature: await send(tx), walletAddress: owner.toBase58(), message: "Inheritance completed. Each beneficiary received their SOL share." };
+  });
 }
 
 export function useDepositSol() {
   const { program } = useProgram();
-  return useVaultMutation(({ vault, sol }: { vault: PublicKey; sol: number }) =>
-    program.methods
-      .depositSol(new BN(Math.round(sol * LAMPORTS_PER_SOL)))
-      .accounts({ vault })
-      .rpc(),
-  );
+  const { connection } = useConnection();
+  return useVaultMutation(async ({ vault, amount }: { vault: PublicKey; amount: string }) => {
+    const lamports = solToLamports(amount);
+    const [balance, minimum] = await Promise.all([connection.getBalance(escrowPda(vault), "confirmed"), connection.getMinimumBalanceForRentExemption(0)]);
+    validateEscrowBalance(BigInt(balance) + lamports, BigInt(minimum));
+    return { signature: await program.methods.depositSol(new BN(lamports.toString())).accounts({ vault }).rpc(), message: "Deposit confirmed. Your balance and inactivity timer have updated." };
+  });
 }
 
 export function useWithdrawSol() {
   const { program } = useProgram();
-  return useVaultMutation(({ vault, sol }: { vault: PublicKey; sol: number }) =>
-    program.methods
-      .withdrawSol(new BN(Math.round(sol * LAMPORTS_PER_SOL)))
-      .accounts({ vault })
-      .rpc(),
-  );
+  const { connection } = useConnection();
+  return useVaultMutation(async ({ vault, amount }: { vault: PublicKey; amount: string }) => {
+    const lamports = solToLamports(amount);
+    const [balance, minimum] = await Promise.all([connection.getBalance(escrowPda(vault), "confirmed"), connection.getMinimumBalanceForRentExemption(0)]);
+    if (lamports > BigInt(balance)) throw new Error("The withdrawal exceeds the vault's current SOL balance.");
+    validateEscrowBalance(BigInt(balance) - lamports, BigInt(minimum));
+    return { signature: await program.methods.withdrawSol(new BN(lamports.toString())).accounts({ vault }).rpc(), message: "Withdrawal confirmed. SOL has returned to your wallet." };
+  });
 }
 
-/**
- * Owner shuts the vault down entirely: withdraw every lamport (this
- * auto-vetoes if a claim is mid-challenge — one signature covers both), then
- * close the account. Afterward no beneficiary can ever claim against it
- * again; there's nothing left to veto. Irreversible — the UI must confirm
- * before calling this.
- */
 export function useCancelVault() {
-  const { program } = useProgram();
-  return useVaultMutation(
-    async ({ vault, balanceSol }: { vault: PublicKey; balanceSol: number }) => {
-      if (balanceSol > 0) {
-        await program.methods
-          .withdrawSol(new BN(Math.round(balanceSol * LAMPORTS_PER_SOL)))
-          .accounts({ vault })
-          .rpc();
-      }
-      return program.methods.closeVault().accounts({ vault }).rpc();
-    },
-  );
+  const { program, owner, connection, send } = useAtomicVaultAction();
+  return useVaultMutation(async (vault: PublicKey) => {
+    if (!owner) throw new Error("Connect your wallet first.");
+    const account = await program.account.vault.fetch(vault);
+    const balance = BigInt(await connection.getBalance(escrowPda(vault), "confirmed"));
+    const tx = await cancelVaultTransaction(program, owner, vault, balance, "inChallenge" in account.state);
+    return { signature: await send(tx), walletAddress: owner.toBase58(), message: "Vault cancelled. Its SOL has returned to your wallet." };
+  });
 }
 
 export function useCreateVault() {
-  const { program, owner } = useProgram();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      inactivitySecs,
-      challengeSecs,
-      beneficiaries,
-      initialDepositSol,
-    }: {
-      inactivitySecs: number;
-      challengeSecs: number;
-      beneficiaries: Beneficiary[];
-      initialDepositSol: number;
-    }) => {
-      if (!owner) throw new Error("connect a wallet first");
-      const vaultId = new BN(Date.now());
-      const sig = await program.methods
-        .initializeVault(vaultId, new BN(inactivitySecs), new BN(challengeSecs), beneficiaries)
-        .accounts({ owner })
-        .rpc();
-      if (initialDepositSol > 0) {
-        const { vaultPda } = await import("@/lib/solana");
-        await program.methods
-          .depositSol(new BN(Math.round(initialDepositSol * LAMPORTS_PER_SOL)))
-          .accounts({ vault: vaultPda(owner, vaultId) })
-          .rpc();
-      }
-      return sig;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["vaults"] }),
+  const { program, owner, connection, send } = useAtomicVaultAction();
+  return useVaultMutation(async ({ inactivitySecs, challengeSecs, beneficiaries, deposit }: {
+    inactivitySecs: number; challengeSecs: number; beneficiaries: Beneficiary[]; deposit: string;
+  }) => {
+    if (!owner) throw new Error("Connect your wallet first.");
+    if (CLUSTER !== "devnet") throw new Error("This preview supports Solana devnet only.");
+    const lamports = solToLamports(deposit, true);
+    if (lamports > 0n) validateEscrowBalance(lamports, BigInt(await connection.getMinimumBalanceForRentExemption(0)));
+    const vaultId = new BN(Date.now());
+    const { transaction, vault } = await createVaultTransaction(program, owner, vaultId, inactivitySecs, challengeSecs, beneficiaries, lamports);
+    return { signature: await send(transaction), vaultAddress: vault.toBase58(), message: "Vault created. Your beneficiaries, timer, and SOL deposit are confirmed together." };
   });
 }
