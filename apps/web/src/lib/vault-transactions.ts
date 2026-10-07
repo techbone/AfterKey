@@ -1,7 +1,8 @@
 import BN from "bn.js";
-import { type Program } from "@coral-xyz/anchor";
+import { type IdlAccounts, type Program } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import type { ProofOfLife } from "../../../../packages/program/proof_of_life.ts";
+import { recoveryAllocations, recoveryPolicy } from "./vault-recovery";
 
 type VaultProgram = Program<ProofOfLife>;
 
@@ -61,4 +62,19 @@ export async function receiveInheritanceTransaction(
   }
   tx.add(await program.methods.closeReleasedVault().accounts({ cranker, vault }).instruction());
   return tx;
+}
+
+/** A retained Closed record is recovered without finalizing or closing again. */
+export async function recoverClosedVaultTransaction(program: VaultProgram, signer: PublicKey, vault: PublicKey,
+  account: IdlAccounts<ProofOfLife>["vault"], balance: bigint) {
+  if (!("closed" in account.state)) throw new Error("This plan is not closed. Use its active vault actions instead.");
+  if (balance <= 0n) throw new Error("No SOL is waiting to be recovered. Refresh this record.");
+  const policy = recoveryPolicy(account, signer);
+  if (!policy.canAct) throw new Error("Only the vault owner can recover its SOL.");
+  if (policy.action === "withdraw") {
+    return program.methods.withdrawSol(new BN(balance.toString())).accountsPartial({ owner: signer, vault }).transaction();
+  }
+  recoveryAllocations(balance, account.beneficiaries);
+  return program.methods.distributeSol().accountsPartial({ cranker: signer, vault })
+    .remainingAccounts(account.beneficiaries.map(b => ({ pubkey: b.key, isSigner: false, isWritable: true }))).transaction();
 }

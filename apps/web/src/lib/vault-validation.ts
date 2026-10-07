@@ -68,6 +68,6 @@ export function transactionError(error: unknown): string {
   if (/insufficient|0x1\b/i.test(message)) return "Not enough SOL for this amount, account rent, and transaction fees. Check your devnet wallet balance.";
   if (/Paused/.test(message)) return "New vaults and deposits are temporarily paused. Check-ins, withdrawals, and claims remain available.";
   if (/WrongState/.test(message)) return "This vault changed since the page loaded. Refresh it before trying again.";
-  if (/fetch|network|429|403|503|rpc/i.test(message)) return "We couldn't reach Solana. Your on-chain vault is unchanged by this read failure. Refresh and try again.";
+  if (/fetch|network|429|403|503|rpc/i.test(message)) return "We couldn't reach Solana. Refresh and check your transaction history before trying again.";
   return message.length <= 180 ? message : "The transaction couldn't be completed. Refresh the vault and check your wallet history before retrying.";
 }
