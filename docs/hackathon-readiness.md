@@ -1,6 +1,16 @@
-# AfterKey hackathon readiness — October 6, 2026
+# AfterKey hackathon readiness — October 7, 2026
 
-Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The current rollout below verifies program bytecode and signed program smoke transactions; the new browser flow still needs a fresh two-wallet walkthrough. Earlier assessments are retained as historical evidence.
+Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The founder reported completing the post-deployment browser checklist on October 7; individual browser signatures/screenshots have not been supplied. Earlier assessments are retained as historical evidence.
+
+## October 7 milestone — closed-vault history and SOL recovery
+
+The founder reports completing the October 6 create/check-in/claim/veto/payout/cancellation checklist. This is self-reported manual evidence for the previous frontend release, not independent external-user validation.
+
+The next frontend milestone adds `/history`: retained Closed records involving a wallet, cancellation/completion filters, exact SOL escrow balances, saved beneficiaries, Explorer links and public wallet lookup without signing. A connected owner can recover SOL after cancellation; completed inheritances distribute remaining SOL to all stored beneficiaries. Recovery does not finalize or close a record again, change recipients, reopen a plan, or reclaim record rent. The existing live program supports these instructions; no contract upgrade is required.
+
+Verification: **10 targeted atomic-transaction/recovery/receipt tests passed**, both TypeScript projects passed and the production frontend build passed. Tests cover owner-only cancellation recovery, completed-inheritance payout and rounding, substituted-recipient rollback, rejection of non-Closed/empty recoveries, recovery while paused, and confirmed receipts not waiting for stalled RPC refreshes. The real authority-owned smoke record was given 0.01 devnet SOL, inspected in the read-only browser view, and emptied using the new recovery builder; its record remained Closed. Evidence: [history-recovery-verification.json](history-recovery-verification.json). Desktop and 375px mobile read-only layouts, filters and invalid-address validation were inspected; no horizontal overflow or console errors were observed. Connected-wallet browser approval on this new screen remains a manual acceptance check.
+
+Scope: this is a retained-record browser, not a complete transaction timeline or SPL-token recovery interface. It reads the current devnet program directly; older deployments remain separate. Next: finish the new history/recovery browser acceptance checks, then build the Milestone 4 email reminder/claim-alert backend with signed wallet association and optional verified email. Notification-service downtime must not block on-chain actions.
 
 ## Current rollout — fresh devnet program verified
 
@@ -10,7 +20,7 @@ The new authority and config admin are `Bs7Uok84x4tiWy3hjohmRFcTjVJxtvXzE39WBQp5
 
 At slot `508071667`, deployed bytecode matched the tested 405,320-byte devnet artifact (SHA256 `1fb7171ac9db3b45f54184a8098b377afbaf779109978097a8421a977f19dd09`). The config is unpaused with minimum inactivity **60 seconds** and challenge **30 seconds**. A signed live check atomically created/funded a vault with 0.01 test SOL, cancelled it while retaining its Closed record, and successfully recovered a subsequent SOL transfer after closure. Transaction evidence is in [devnet-deployment.json](devnet-deployment.json).
 
-Verification: **77 standard tests passed**, **19 devnet lifecycle/recovery/timing tests passed**, both TypeScript projects passed, and the production web build passed. Upload instructions were exercised against loader-v3 in LiteSVM, including wrong-authority rejection. The frontend/IDL now reference the replacement address. Next gate: a fresh owner/beneficiary browser walkthrough on the published app, followed by reminders and submission materials. A remote CI run is not yet evidenced by this report.
+Verification at deployment: **77 standard tests passed**, **19 devnet lifecycle/recovery/timing tests passed**, both TypeScript projects passed, and the production web build passed. Upload instructions were exercised against loader-v3 in LiteSVM, including wrong-authority rejection. The frontend/IDL now reference the replacement address. The founder subsequently reported completing the browser walkthrough, as recorded above. A remote CI run is not yet evidenced by this report.
 
 ## Earlier milestone — local reliability candidate
 
@@ -91,7 +101,7 @@ Token support remains part of the original MVP. Fix closure regardless of demo s
 
 ## Your two-wallet devnet test checklist
 
-Use the [published app](https://after-key-web.vercel.app) in a browser with Phantom/Solflare/Backpack installed. Select **Solana devnet**. Prepare separate **Owner A** and **Heir B**, both funded with test SOL for fees; optionally **Heir C** for split checks. Create fresh vaults under program `DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`: old-program vaults are not migrated. Use the **2-minute inactivity** and **1-minute challenge** presets. Record vault addresses, transaction signatures and screenshots. The founder tested the previous release; the current signed browser checklist remains pending. The program-level live smoke and automated evidence above are separate.
+Use the [published app](https://after-key-web.vercel.app) in a browser with Phantom/Solflare/Backpack installed. Select **Solana devnet**. Prepare separate **Owner A** and **Heir B**, both funded with test SOL for fees; optionally **Heir C** for split checks. Create fresh vaults under program `DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`: old-program vaults are not migrated. Use the **2-minute inactivity** and **1-minute challenge** presets. Record vault addresses, transaction signatures and screenshots. The founder reports this core checklist is complete; the new history/recovery cases below remain pending browser approval checks. Program-level live smoke and automated evidence are separate.
 
 Create/fund, cancel, and receive/complete are each one atomic transaction in the current SOL interface. A rejected signature leaves that action unapplied. The on-chain Closed record remains after completion or cancellation, while the active lists hide it. Its rent is retained, not refunded. When confirmation is uncertain, refresh and check the transaction in Explorer before repeating an action.
 
@@ -113,7 +123,15 @@ Create/fund, cancel, and receive/complete are each one atomic transaction in the
 
 For each case, record **Pass / Fail / Not tested**. For failures, include the step, vault address, transaction signature if present, expected outcome, actual outcome and screenshot. Count a confirmed Explorer transaction separately from an unconfirmed wallet approval.
 
-Post-closure SOL/SPL recovery uses program/CLI instructions today; the browser hides Closed records and has no recovery/history screen yet. Owner cancellation permits owner-only recovery. Completed inheritance permits distribution to the stored beneficiaries and forbids owner reclamation. Those authority cases are covered in the automated suites; later SOL recovery after owner cancellation was also exercised on devnet. SPL token management, Token-2022 and notifications are not browser-test features in this release.
+### New history/recovery acceptance checks
+
+1. After cancellation or completion, open **History** with the involved wallet. Verify the correct outcome and saved recipients. Toggle All/Cancelled/Completed and refresh. Counts and records must agree; last-owner activity must not be mistaken for a closure timestamp.
+2. Disconnect and look up that public wallet address. Records remain readable, but signing actions require connecting a wallet. Invalid addresses show validation. Connecting changes the view to the connected wallet's records.
+3. On a cancelled test vault, use **Inspect SOL escrow** to identify the escrow address, distinct from the vault-record address. Send 0.01 devnet SOL there. The owner reviews and recovers it with one approval; it drains to zero and stays Closed. A named beneficiary sees owner-only rights and cannot recover that cancelled plan.
+4. On a completed-inheritance test vault, send 0.01 devnet SOL to its SOL escrow. Review the saved recipient addresses and exact allocations, then distribute once. All saved shares are paid; the owner cannot turn this into a personal withdrawal. The record stays Closed.
+5. Decline a recovery signature, reconnect/switch wallets and retry. Declining leaves funds unchanged; confirmed receipts remain visible after the balance becomes zero. Receipts must not appear under another connected wallet. For uncertain confirmation, check Explorer before retrying.
+
+Token balances and token recovery are still program/CLI-level features. Token-2022 and notifications are not browser-test features in this release. Empty SOL escrow does not prove no SPL tokens remain.
 
 After a contract fix and new deployment, repeat the affected lifecycle tests and retain evidence. Automated adversarial testing should also cover unauthorized signers, exact deadline boundaries, paused-program exit actions, multiple token mints and attempted closure with tokens remaining.
 

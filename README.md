@@ -8,6 +8,8 @@ A crypto inheritance plan on Solana. An owner deposits assets into a program-con
 
 Current devnet program: [`DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`](https://explorer.solana.com/address/DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7?cluster=devnet). The October 6 replacement deployment has verified bytecode parity and live creation, cancellation and recovery receipts in [devnet-deployment.json](docs/devnet-deployment.json). It uses a fresh address after loss of the original upgrade key; old vaults remain under the original program.
 
+[History & recovery](https://after-key-web.vercel.app/history) shows retained Closed records and supports remaining-SOL recovery with the original owner/beneficiary rights. Public lookup is read-only; signing uses the connected wallet. The view covers SOL on the current devnet deployment, with [live recovery evidence](docs/history-recovery-verification.json).
+
 ## Run the web app
 
 Requirements: Node.js 22 and npm.

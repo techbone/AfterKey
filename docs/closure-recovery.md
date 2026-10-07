@@ -37,3 +37,5 @@ Changing the website alone does not update program behavior. The October 6 devne
 Records already deallocated by the previous program cannot be recovered through this change. The frontend must not promise a vault-account rent refund under the updated behavior. Token ATA rent still returns when `withdraw_token` or `distribute_token` closes an emptied ATA.
 
 The README and this document supersede older descriptions of closure/rent refunds in the design archive. A future rent reclamation feature requires a separate design that preserves arbitrary-mint recovery; do not reintroduce deallocation based on caller-supplied enumeration alone.
+
+The October 7 `/history` screen exposes retained records and SOL recovery under these same rights. The client fetches current state and escrow balance before signing, uses owner withdrawal for cancelled plans and all-beneficiary distribution for completed inheritances, and never sends a second closure instruction. Token recovery still requires program tools. See [history-recovery-verification.json](history-recovery-verification.json) for its owner-recovery live check.

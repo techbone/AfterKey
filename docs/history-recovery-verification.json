@@ -1,0 +1,12 @@
+{
+  "cluster": "devnet",
+  "programId": "DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7",
+  "vault": "nMQPfN8XDgXKTXK7N7r1xfR3mKLkZsNoLWpy7DcKgks",
+  "owner": "Bs7Uok84x4tiWy3hjohmRFcTjVJxtvXzE39WBQp54qSM",
+  "donationLamports": 10000000,
+  "donationSignature": "5HXNh4HmJVYxqZDeq7HxspN8yBMny41Hs2wy21kDTFknbQ9823tHBdNq4xYTfx8sMBLbNtiYn93crc2bnyRbRwmV",
+  "recoverySignature": "2xSo7XpuyVrNKmogce58F73otMEikznaXRg2roFEdGUEPUQYWxjwY2FK2S7kuj29eLgQomvneZmbbaoZniyRfCFV",
+  "closedRecordRetained": true,
+  "escrowBalanceLamports": 0,
+  "verifiedAt": "2026-10-07T19:19:40.973Z"
+}
