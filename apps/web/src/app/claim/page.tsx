@@ -184,6 +184,7 @@ export default function ClaimPage() {
         <p className="mt-2 text-sm text-mist">
           Vaults where {shortKey(publicKey)} is a beneficiary.
         </p>
+        <p className="mt-2 text-sm text-mist">Completed inheritances remain in <Link href="/history" className="text-pulse underline underline-offset-4">History & recovery</Link>.</p>
       </div>
 
       <TransactionFeedback action={{ isPending: false, error: null, data: receipt?.walletAddress === publicKey?.toBase58() ? receipt : undefined }} />

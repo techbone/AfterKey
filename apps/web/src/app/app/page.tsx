@@ -237,6 +237,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
+      <p className="mt-3 text-sm text-mist">Closed plans live in <Link href="/history" className="text-pulse underline underline-offset-4">History & recovery</Link>.</p>
       <TransactionFeedback action={{ isPending: false, error: null, data: receipt?.walletAddress === publicKey?.toBase58() ? receipt : undefined }} />
       <div className="mt-8 space-y-8">
         {isLoading && <p className="text-mist">Loading your vaults…</p>}
