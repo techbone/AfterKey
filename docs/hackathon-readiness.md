@@ -1,6 +1,14 @@
-# AfterKey hackathon readiness — October 7, 2026
+# AfterKey hackathon readiness — October 8, 2026
 
 Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The founder reported completing the post-deployment browser checklist on October 7; individual browser signatures/screenshots have not been supplied. Earlier assessments are retained as historical evidence.
+
+## October 8 — notification backend prepared; delivery disabled
+
+The founder chose backend preparation before service configuration. `apps/api` now contains wallet-standard sign-in with expiring one-use challenges, opaque HttpOnly sessions, verified optional email preferences, PostgreSQL/Drizzle models and migration, pg-boss jobs, owner reminder/claim-alert scheduling, read-only Solana reconciliation and a Resend transport. Delivery requires an explicit activation flag and durable storage; memory mode cannot send real mail or run in production.
+
+Twelve local API/worker/network-guard tests passed, including replay/expiry/domain binding, CSRF, verification changes, stale-mail suppression, duplicate/retry handling and disabled-provider guards. The local service booted with `storage: memory` and `deliveryConfigured: false`. A read-only live RPC check verified the devnet genesis, executable program and two current vault records. These are preparation tests with fake delivery, not real inbox evidence. Docker became available, but the disposable PostgreSQL image download stalled and was stopped. Two opt-in PostgreSQL/pg-boss integration tests cover concurrent nonce/token consumption, persistence, private-table RLS and queue retry after restart; they are configured in CI but have not yet been observed passing.
+
+Next activation gates are [documented in the backend setup guide](../apps/api/README.md): PostgreSQL configuration/integration, verified email sender, backend hosting, frontend Settings and email-verification flow, real opted-in delivery test and operational monitoring. Notification promises stay absent from the live frontend. The dependency review also prompted patching the existing Next.js 15.5 line and shell-quote; remaining wallet/dependency advisories require assessment before a production/mainnet release.
 
 ## October 7 milestone — closed-vault history and SOL recovery
 

@@ -10,6 +10,8 @@ Current devnet program: [`DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`](https:/
 
 [History & recovery](https://after-key-web.vercel.app/history) shows retained Closed records and supports remaining-SOL recovery with the original owner/beneficiary rights. Public lookup is read-only; signing uses the connected wallet. The view covers SOL on the current devnet deployment, with [live recovery evidence](docs/history-recovery-verification.json).
 
+The [notification backend preparation](apps/api/README.md) adds wallet sign-in, verified email preferences and a reminder/claim-alert worker. Delivery stays disabled until database/provider setup and the Settings UI are connected and tested. The public frontend does not promise email delivery yet.
+
 ## Run the web app
 
 Requirements: Node.js 22 and npm.

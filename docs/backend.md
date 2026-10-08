@@ -1,5 +1,7 @@
 # Backend Architecture — AfterKey
 
+Implementation status (October 8, 2026): the initial notification slice is prepared in `apps/api`, with local tests and disabled delivery. See [its setup and activation gates](../apps/api/README.md). It currently uses direct chain polling/reconciliation, persisted opaque HttpOnly sessions and a minimal Drizzle schema. The Helius event pipeline, complete projections/activity APIs, cranker, Settings UI and live PostgreSQL/Resend deployment below remain planned. No notification delivery is currently advertised as live.
+
 ## 1. Do we need a backend? Yes — but only for what the chain can't do
 
 The chain cannot email a user "you have 14 days to prove you're alive." For a dead-man's switch, **notifications are safety-critical product surface** (they prevent false releases), even though they are never *trust*-critical (they can't move funds). The backend also gives the frontend fast indexed reads and runs the courtesy cranker.
