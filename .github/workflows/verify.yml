@@ -7,6 +7,20 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: afterkey
+          POSTGRES_PASSWORD: afterkey_test_only
+          POSTGRES_DB: afterkey_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U afterkey -d afterkey_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,6 +29,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run test:api
+        env:
+          AFTERKEY_TEST_DATABASE_URL: postgresql://afterkey:afterkey_test_only@127.0.0.1:5432/afterkey_test
       - run: npm run test:unit
       - run: npm run build --workspace @afterkey/web
       - name: Install pinned Solana build tools
