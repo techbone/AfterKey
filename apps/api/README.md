@@ -21,7 +21,9 @@ npm run typecheck
 
 Tests use generated test wallets, in-memory storage/queues, fake chain snapshots and a mock email provider. They cover signatures, replay/expiry, CSRF, session cookies, one-use email verification, preference changes, stale reminders/claim alerts, retry idempotency, data deletion, projection repair and disabled-delivery guards. They do not prove live PostgreSQL or inbox delivery.
 
-Two database integration tests are opt-in locally and enabled in CI. They require a disposable localhost database whose name ends in `_test`; never point them at application data. They rerun the migration and test persistence, concurrent one-use operations, RLS configuration and queue failure/retry across restart. For an already running test database:
+GitHub Actions is optional and manual-only while the account billing issue remains unresolved. It does not gate pushes or Vercel deployments. Before release, run API tests and type checking above, plus `npm run test:unit` and `npm run build --workspace @afterkey/web` locally. Contract changes also require `npm test` and `npm run test:devnet` with the pinned Solana toolchain. Record results locally; a skipped database test is not a passing integration check.
+
+Two database integration tests are opt-in locally and included in the optional workflow. They require a disposable localhost database whose name ends in `_test`; never point them at application data. They rerun the migration and test persistence, concurrent one-use operations, RLS configuration and queue failure/retry across restart. For an already running test database:
 
 ```sh
 AFTERKEY_TEST_DATABASE_URL=postgresql://TEST_USER:TEST_PASSWORD@127.0.0.1:5432/afterkey_test npm run test:api
@@ -47,6 +49,12 @@ The sign-in message is built with the official wallet-standard utility and bound
 
 Keep real credentials in `apps/api/.env` locally or hosting secrets. Never use `NEXT_PUBLIC_` variables for them and never paste them in chat.
 
+PostgreSQL is required by this notification backend for persistent verified email preferences, sessions, delivery records and the pg-boss job queue. Core vault creation, check-in, claims and payouts remain on Solana and work without it. Memory mode is only for preparation; a restart would lose preferences and pending jobs.
+
+For the first setup step, create the PostgreSQL project, copy `.env.example` to `.env`, set `API_STORAGE=postgres` and fill in `DATABASE_URL`. Keep `NOTIFICATIONS_DELIVERY_ENABLED=false` and leave both Resend fields empty until the sender is configured. Give the developer only the local config-file path; they can run the migration and connection checks. Do not run the localhost-only integration suite against this hosted application database.
+
+For Supabase, open the project's **Connect** dialog and copy a PostgreSQL connection string. Use the direct connection when IPv6 is available, or the **Session pooler** for an IPv4-only connection to this persistent backend. Replace the password placeholder and percent-encode reserved characters in the password. A project URL, anon key or service-role API key is not a database connection string. See [Supabase's connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
 Required settings:
 
 ```dotenv
@@ -63,7 +71,7 @@ POLL_INTERVAL_SECONDS=30
 NOTIFICATIONS_DELIVERY_ENABLED=false
 ```
 
-Use a private owner/service-role PostgreSQL connection with appropriate TLS settings. Migrations enable row-level security without browser/client policies for all private tables. Do not expose the pg-boss schema through a public data API. The backend is the only intended database client.
+Use a private backend PostgreSQL connection with appropriate TLS settings and a database role permitted to run the migrations and create/use the pg-boss schema. Migrations enable row-level security without browser/client policies for all private tables. Do not expose the pg-boss schema through a public data API. The backend is the only intended database client.
 
 ```sh
 npm run migrate:api

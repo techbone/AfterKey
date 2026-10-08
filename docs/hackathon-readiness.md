@@ -10,6 +10,8 @@ Twelve local API/worker/network-guard tests passed, including replay/expiry/doma
 
 Next activation gates are [documented in the backend setup guide](../apps/api/README.md): PostgreSQL configuration/integration, verified email sender, backend hosting, frontend Settings and email-verification flow, real opted-in delivery test and operational monitoring. Notification promises stay absent from the live frontend. The dependency review also prompted patching the existing Next.js 15.5 line and shell-quote; remaining wallet/dependency advisories require assessment before a production/mainnet release.
 
+GitHub Actions could not start because GitHub reports an account billing lock. The founder requested continuing without it while their support report is pending. The workflow is now manual-only; local verification is the release gate. Main commit `9b0da76` deployed successfully on Vercel independently of Actions. Database integration remains an explicit local acceptance gate, not a reason to wait for GitHub billing support.
+
 ## October 7 milestone — closed-vault history and SOL recovery
 
 The founder reports completing the October 6 create/check-in/claim/veto/payout/cancellation checklist. This is self-reported manual evidence for the previous frontend release, not independent external-user validation.

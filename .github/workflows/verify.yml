@@ -1,8 +1,9 @@
 name: Verify AfterKey
 
 on:
-  push:
-  pull_request:
+  # Optional only: account billing currently prevents hosted runs.
+  # Local checks are the release gate; Vercel deploys directly from main.
+  workflow_dispatch:
 
 jobs:
   verify:
