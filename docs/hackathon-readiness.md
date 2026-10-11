@@ -1,6 +1,14 @@
-# AfterKey hackathon readiness — October 8, 2026
+# AfterKey hackathon readiness — October 11, 2026
 
 Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The founder reported completing the post-deployment browser checklist on October 7; individual browser signatures/screenshots have not been supplied. Earlier assessments are retained as historical evidence.
+
+## October 11 — hosted notification database verified
+
+The founder configured a Supabase Session pooler URI. The connection authenticated on PostgreSQL 17.11 using TLS 1.3 with certificate-chain and hostname validation against Supabase's official public root CA. The private connection URI remains in an ignored local environment file.
+
+The migration created seven private notification tables with RLS enabled and no public-client policies. An isolated hosted smoke check verified concurrent one-use nonce/email-token consumption, preferences persisting after reconnect, initialization of the actual application queue, duplicate-job suppression and retry after worker restart. Test preferences and the isolated queue were removed after verification. Evidence: [notification-database-verification.json](notification-database-verification.json).
+
+Real email delivery remains disabled. Next: frontend Settings/verification, Resend's verified sender, public API hosting, opted-in inbox delivery and the reminder/claim/veto walkthrough. GitHub Actions remains optional and manual-only.
 
 ## October 8 — notification backend prepared; delivery disabled
 
