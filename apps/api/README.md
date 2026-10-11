@@ -2,7 +2,7 @@
 
 Node **22.12+**, Fastify, PostgreSQL/Drizzle, pg-boss and a Resend transport. This first slice binds an optional email to a signing wallet, verifies email ownership, schedules 50/80/95% check-in reminders, and alerts the owner when a claim starts. It reads Solana; it has no wallet key and cannot move vault funds.
 
-**Status:** code and local API/worker tests are prepared. Real delivery is disabled by default. PostgreSQL/pg-boss integration, real provider delivery, public hosting and the frontend Settings/verification page remain deployment gates. The existing frontend still states that notifications are unavailable. No real emails were sent during preparation.
+**Status:** code and local API/worker tests are prepared. A hosted Supabase connection, migration, private-table protection, persistence, concurrent one-use tokens and queue retry after worker restart were verified on October 11; [evidence](../../docs/notification-database-verification.json). Real delivery is disabled. Provider delivery, public backend hosting and the frontend Settings/verification page remain deployment gates. The existing frontend still states that notifications are unavailable. No real emails were sent during preparation or database verification.
 
 ## Local preparation
 
@@ -72,6 +72,8 @@ NOTIFICATIONS_DELIVERY_ENABLED=false
 ```
 
 Use a private backend PostgreSQL connection with appropriate TLS settings and a database role permitted to run the migrations and create/use the pg-boss schema. Migrations enable row-level security without browser/client policies for all private tables. Do not expose the pg-boss schema through a public data API. The backend is the only intended database client.
+
+The repository includes Supabase's public root certificate in `certs/supabase-prod-ca-2021.crt`. Configure the private connection URI with `sslmode=verify-full` and `sslrootcert` pointing to that file's absolute path on the runtime host. Update the path when moving from a Mac to hosted execution. This validates both the certificate chain and pooler hostname. See [certificate provenance](certs/README.md); the certificate contains no database credentials.
 
 ```sh
 npm run migrate:api
