@@ -1,94 +1,72 @@
-# Demo Video Script — AfterKey
+# AfterKey demo video — submission version
 
-Target: 2:30–3:00, 1080p, 16:9. Built around the actual devnet-timing app (2-min/1-min presets) so nothing here is faked.
+Target edited length: **2:50**, with a hard limit of 3:00. Record the real lifecycle first, then cut waiting periods and wallet-loading pauses. Use the live app: https://after-key-web.vercel.app.
 
-## Priority rule for X specifically
+## Before recording
 
-**X autoplays muted in-feed.** Most people will watch this with no sound while scrolling. That means **burnt-in captions/on-screen text are more important than voiceover** — voiceover is a nice layer for people who tap to unmute, but the video must tell the whole story silently through text + visuals alone. Every beat below has a caption line — treat those as required, the voiceover as optional.
+- Use separate owner and beneficiary wallets, both on Solana devnet with test SOL for fees. Keep their seed phrases and recovery screens out of the recording.
+- Copy the beneficiary address before starting. Use one beneficiary at 100%, a 0.1 test SOL deposit, 2-minute inactivity and 1-minute response-window demo presets.
+- Open the owner dashboard and beneficiary inheritance page in separate browser profiles or switch the connected wallet deliberately. Confirm the displayed address after each switch.
+- Wait for every transaction to confirm. After the first claim, veto promptly, before the 1-minute response window expires.
+- The raw recording will take longer than three minutes. Actually wait through the two inactivity periods and final response period. Label every waiting-period cut **“Time condensed — actual devnet wait.”** Do not change the system clock or imply that on-chain timing was bypassed.
+- Add captions for the narration. Record the completed sequence before editing so you can use actual receipts and Explorer transactions.
 
-## Tools
+## 0:00–0:15 — Introduce the working app
 
-- **Recording:** QuickTime (free, Cmd+Shift+5) is fine. If you want the polished cursor-follow zoom effect you see in slick product demos, **Screen Studio** (paid, Mac) is the popular choice and worth it for a launch video.
-- **Editing + captions:** **CapCut** (free) — auto-captions, easy text overlays, exports directly in X's preferred format. iMovie works too but CapCut's caption tooling is faster.
-- **Music:** subtle, moody, low-key ambient — not meme music. YouTube Audio Library or Epidemic Sound, filter for "minimal / tension / corporate calm." Should build very slightly during the silence/countdown beats and resolve when the inheritance completes.
+**Screen:** Show the landing page, click Launch App, and show the devnet label.
 
-## Before you record — setup checklist
+**Say:** “This is AfterKey: a crypto inheritance plan on Solana, without sharing your keys. I’ll show the complete owner-to-beneficiary flow using test SOL on devnet.”
 
-- [ ] Two Phantom accounts, **renamed** in Phantom itself: one "Owner", one "Heir" — makes the recording self-explanatory without you narrating "this is the owner's wallet."
-- [ ] Both funded with devnet SOL.
-- [ ] Phantom set to devnet (Settings → Developer Settings → Testnet Mode).
-- [ ] Mac in dark mode (matches the app's theme).
-- [ ] Do Not Disturb ON — no notification banners mid-recording.
-- [ ] Browser: clean profile, bookmarks bar hidden, only one tab, zoomed to ~110% so text reads well at video resolution.
-- [ ] `npm run dev -w apps/web` running against devnet, or better — record against your live Vercel deploy so the URL bar shows a real link, not `localhost`.
+## 0:15–0:50 — Create and fund
 
-## Shot list
+**Screen:** Connect the owner wallet → + New vault. Enter the beneficiary address at 100%. Continue to Timing: choose the 2-minute inactivity and 1-minute response-window demo presets. Continue to Review & fund: enter 0.1 SOL, show the summary, click Create & fund vault, approve and show the confirmed receipt.
 
-**0:00–0:10 — The hook**
-Screen: landing page hero, static, before scrolling.
-Caption (large, bold): **"If you died tonight, what happens to your SOL?"**
-Voiceover (optional): *"Every year, billions in crypto become permanently unreachable — because the owner never shared their keys."*
-Do not show your logo or a title card first. Open cold on the question.
+**Say:** “As the owner, I choose who inherits, their share, and two waiting periods. Here, one beneficiary receives one hundred percent. I’m using short demo timers and depositing point one test SOL. The review screen makes those rules explicit. One wallet approval creates and funds the vault together.”
 
-**0:10–0:20 — The problem, fast**
-Screen: scroll the landing page to the "what we can never do" section.
-Caption: *"Wills can't sign transactions. Sharing your seed phrase is a loaded gun."*
+## 0:50–1:05 — Prove owner control
 
-**0:20–0:35 — Connect + create**
-Screen: click "Launch App" → connect **Owner** wallet → click "+ New vault".
-Caption: *"AfterKey: a non-custodial dead-man's switch on Solana."*
+**Screen:** Open Your vaults, click I'm alive, approve, then show the reset countdown.
 
-**0:35–1:00 — The wizard**
-Screen: pick "2 minutes (demo)" inactivity, "1 minute (demo)" challenge, paste the **Heir** wallet address at 100%, set deposit to 0.1 SOL. Let the plain-language summary box sit on screen for a beat — it's a strong visual proof point.
-Caption: *"You set the timer. You choose who inherits. You keep control."*
-Click Create → sign in Phantom (let the popup show briefly, it's good authenticity).
+**Say:** “The owner remains in control before release. This check-in resets the inactivity timer. A beneficiary cannot claim while that timer is still running.”
 
-**1:00–1:15 — The dashboard, alive**
-Screen: dashboard with the countdown decaying (green).
-Caption: *"While you're alive, nothing happens — and you can prove it anytime."*
-Click **"I'm alive"** → sign → timer visibly resets.
+## 1:05–1:30 — Start a beneficiary claim
 
-**1:15–1:25 — Time-lapse the silence**
-Cut to a sped-up clip (2–3x, or a hard jump-cut) of the countdown running down and turning red.
-Caption (holds through the cut): **"2 minutes later — no check-in."**
-End on the red "Claimable now" state.
+**Screen:** Cut the real 2-minute wait with the time-condensed caption. Connect the beneficiary wallet, open Your inheritances, show the eligible vault and click Start a claim. Approve and show the response countdown.
 
-**1:25–1:45 — The heir's side**
-Screen: switch to the **Heir** browser profile, open `/claim` — the vault appears.
-Caption: *"If you go silent, your beneficiary can start a claim."*
-Click **"Start a claim"** → sign. Cut immediately to the **Owner's** dashboard showing the red **"⚠ A claim is in progress"** banner.
-Caption: *"But you get one last chance to say you're still here."*
+**Say:** “After the owner’s inactivity period passes, the named beneficiary can start a claim. That does not immediately release the funds. It opens a separate response window for the owner.”
 
-**1:45–1:55 — The twist: veto**
-Screen: Owner clicks **"I'm alive — cancel this claim"** → sign → banner disappears, vault back to Active.
-Caption: **"One signature. Claim cancelled."**
-(This beat is what makes the video a story, not a feature list — don't cut it for time.)
+## 1:30–1:50 — Show the owner veto
 
-**1:55–2:05 — Time-lapse again, for real this time**
-Cut: countdown resets, time-lapses down again, heir re-initiates, challenge countdown time-lapses to zero.
-Caption: **"This time, no one answers."**
+**Screen:** Return to the owner wallet and Your vaults. Show A claim is in progress. Click I'm alive — cancel this claim, approve promptly, and show the active state and reset timer.
 
-**2:05–2:20 — Completion**
-Screen: Heir reviews the saved payout and uses the current atomic completion/receive action → one wallet approval. Cut to Phantom or Solana Explorer showing SOL landing in the beneficiary wallets. Retain the real waiting-period cuts with a “time condensed” caption.
-Caption: **"Assets released — without us, without a key ever changing hands."**
-Voiceover (optional, this is the line to say out loud if you say anything): *"No company was needed to complete this. Anyone could have finished it."*
+**Say:** “If the owner returns, they can veto the claim with their wallet. Here, the claim is cancelled and the plan returns to active. No seed phrase is shared with the beneficiary.”
 
-**2:20–2:35 — End card**
-Screen: static frame — logo, one line, one link.
-Text on screen:
-```
-AfterKey
-Crypto inheritance, without sharing your keys.
-Live on Solana devnet — try it: https://after-key-web.vercel.app
-```
-No fade-to-black long outro. Cut clean.
+## 1:50–2:20 — Complete inheritance
 
-## Posting on X
+**Screen:** Cut the next real 2-minute inactivity wait. The beneficiary starts a second claim. Cut the actual 1-minute response wait. Click Receive inheritance, approve once, show the confirmed receipt, then open its devnet Explorer transaction and show the beneficiary transfer.
 
-Post as a short thread from your **personal** account:
+**Say:** “Now I repeat the claim and let the response window finish without an owner response. Receive inheritance completes the release and SOL payout in one transaction. The program sends the funds to the saved beneficiary; AfterKey does not need to approve completion.”
 
-1. **Tweet 1:** the video, with just the hook line as the tweet text — *"If you died tonight, what happens to your SOL?"* — let the video do the rest.
-2. **Tweet 2:** 3–4 bullet points — non-custodial, permissionless completion (no company required to finish an inheritance), open-source program, live on devnet.
-3. **Tweet 3:** the link to try it + a link to the GitHub repo (once the program subset is public) or docs.
+## 2:20–2:40 — Show retained history
 
-Skip hashtags — crypto Twitter reads them as noise, not reach. Tag Solana Foundation / Superteam / Colosseum accounts only if you're already engaging with them, not cold.
+**Screen:** Open History and select Completed. Show this vault’s retained record, beneficiaries and recovery rights. If necessary, look up the owner wallet address. Do not imply that you executed a recovery unless you record a real recovery transaction.
+
+**Say:** “The completed vault stays visible in History. Its record preserves the original payout rights, including recovery of SOL that arrives after closure. The owner cannot take back an inherited payout.”
+
+## 2:40–2:50 — State scope and close
+
+**Screen:** Show the app and repository URLs as an end card.
+
+**Say:** “This is an unaudited, upgradeable devnet prototype. It measures inactivity, not proof of death. Owners set their own reminders. Try AfterKey and inspect the public source.”
+
+**End card:**
+
+AfterKey — crypto inheritance without sharing your keys.
+
+https://after-key-web.vercel.app
+
+https://github.com/techbone/AfterKey
+
+## Final recording check
+
+Keep the export below three minutes. Show actual confirmed transactions and label condensed waits. No notification Settings or inbox scene belongs in this version. Do not claim an audit, mainnet readiness, automatic detection of death, or coverage of assets outside the vault. Save the creation, check-in, claim, veto and payout signatures separately as evidence.
