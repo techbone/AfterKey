@@ -10,7 +10,7 @@ const steps = [
   {
     n: "02",
     title: "Live your life",
-    body: "Check in, deposit, or withdraw to reset your timer. You keep control until release. Keep your own reminders while email notifications are being built.",
+    body: "Check in, deposit, or withdraw to reset your timer. You keep control until release. Set your own check-in reminder and review your vault regularly.",
   },
   {
     n: "03",

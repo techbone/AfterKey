@@ -20,7 +20,6 @@
     "test:devnet": "npm run build:devnet && AFTERKEY_TEST_TIMING=devnet node --import tsx --test tests/lifecycle.test.ts tests/tokens.test.ts tests/atomic-transactions.test.ts tests/build-timing.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit --incremental false -p apps/web/tsconfig.json && npm run typecheck --workspace @afterkey/api",
     "test:api": "npm run test --workspace @afterkey/api",
-    "test:notifications": "node --import tsx --test tests/notification-settings.test.ts tests/notification-proxy.test.ts",
     "start:api": "npm run start --workspace @afterkey/api",
     "migrate:api": "npm run migrate --workspace @afterkey/api",
     "check:deploy": "node --import tsx scripts/check-deploy.ts",

@@ -16,7 +16,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/app" aria-current={path.startsWith("/app") ? "page" : undefined} className={path.startsWith("/app") ? "font-semibold text-pulse" : "text-mist hover:text-snow"}>Your vaults</Link>
           <Link href="/claim" aria-current={path.startsWith("/claim") ? "page" : undefined} className={path.startsWith("/claim") ? "font-semibold text-pulse" : "text-mist hover:text-snow"}>Your inheritances</Link>
           <Link href="/history" aria-current={path.startsWith("/history") ? "page" : undefined} className={path.startsWith("/history") ? "font-semibold text-pulse" : "text-mist hover:text-snow"}>History</Link>
-          <Link href="/settings" aria-current={path.startsWith("/settings") ? "page" : undefined} className={path.startsWith("/settings") ? "font-semibold text-pulse" : "text-mist hover:text-snow"}>Settings</Link>
           <Link href="/security" className="ml-auto text-mist hover:text-snow">How you&apos;re protected</Link>
         </nav>
       </header>

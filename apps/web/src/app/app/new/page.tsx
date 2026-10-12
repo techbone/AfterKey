@@ -76,7 +76,7 @@ export default function NewVault() {
       "Owner response window: " + humanDuration(challenge),
       "Open " + window.location.origin + "/claim in a browser with your beneficiary wallet connected on devnet.",
       "You may start a claim only after owner inactivity. The owner may veto during the response window. After it ends, finalize and receive the SOL inheritance.",
-      "No seed phrase or private key needs to be shared. Email reminders are not available in this preview.",
+      "No seed phrase or private key needs to be shared. Save these instructions and check the vault status in AfterKey.",
     ].join("\n");
     try { await navigator.clipboard.writeText(text); setCopied(true); }
     catch { setError("Your browser couldn't copy the instructions. You can copy the vault address below."); }
@@ -139,7 +139,7 @@ export default function NewVault() {
                 <div><h3 className="font-semibold">Your final response window</h3><p className="mt-2 text-sm text-mist">After a beneficiary starts a claim, you can still cancel it with a signature before release.</p>
                   <div role="group" aria-label="Challenge period" className="mt-5 flex flex-wrap gap-2">{CHALLENGE_PRESETS.map(p => <button type="button" key={p.seconds} aria-pressed={challenge === p.seconds} onClick={() => setChallenge(p.seconds)} className={"rounded-full border px-4 py-2.5 text-sm " + (challenge === p.seconds ? "border-pulse bg-pulse/10 text-pulse" : "border-edge text-mist")}>{p.label}</button>)}</div>
                 </div>
-                <p className="rounded-xl border border-edge p-4 text-xs leading-relaxed text-mist">Email reminders are not available in this preview. Keep your own check-in reminder. The waiting period is enforced on-chain.</p>
+                <p className="rounded-xl border border-edge p-4 text-xs leading-relaxed text-mist">Set your own check-in reminder and review your vault regularly. The waiting period is enforced on-chain; you must respond to a claim before release.</p>
               </section>}
               {stage === 2 && <section className="space-y-6 rounded-3xl border border-edge bg-surface p-6 sm:p-8">
                 <h2 className="font-display text-xl font-bold">Review before signing</h2>
