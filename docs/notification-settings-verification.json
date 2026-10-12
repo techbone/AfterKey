@@ -1,0 +1,24 @@
+{
+  "verifiedAt": "2026-10-12T07:17:08.069371+00:00",
+  "apiTests": {
+    "passed": 15,
+    "skippedLocalDatabaseTests": 2
+  },
+  "frontendNotificationTestsPassed": 6,
+  "vaultInputTestsPassed": 3,
+  "typecheckPassed": true,
+  "productionBuildPassed": true,
+  "sameOriginProxySignInWithGeneratedWallet": true,
+  "postgresSessionRevokedOnLogout": true,
+  "desktopWidth": 1280,
+  "mobileWidth": 375,
+  "mobileContentWidth": 375,
+  "invalidFragmentRemovedAndExplained": true,
+  "connectedWalletBrowserApprovalVerified": false,
+  "publicBackendHosted": false,
+  "realEmailDeliveryVerified": false,
+  "realEmailsSent": 0,
+  "deliveryEnabled": false,
+  "flyDeploymentConfigValid": true,
+  "dockerImageBuildVerified": false
+}

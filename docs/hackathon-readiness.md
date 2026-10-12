@@ -1,6 +1,16 @@
-# AfterKey hackathon readiness — October 11, 2026
+# AfterKey hackathon readiness — October 12, 2026
 
 Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The founder reported completing the post-deployment browser checklist on October 7; individual browser signatures/screenshots have not been supplied. Earlier assessments are retained as historical evidence.
+
+## October 12 — Settings and submission preparation
+
+`/settings` now implements wallet-message sign-in, verified-email preferences, optional reminder/claim choices, explicit email-fragment confirmation, session sign-out and removal of preferences. A server-only same-origin proxy forwards fixed API routes and settings cookies; browser sign-in validates the exact wallet, domain, purpose, devnet and program before requesting a signature. Wallet changes hide mismatched profiles. Missing hosting/provider configuration shows notifications as unavailable rather than promising delivery.
+
+Verification: 15 API tests, 6 notification frontend/proxy tests and 3 input tests passed; two localhost-only PostgreSQL tests were skipped. Type checking and the final production build passed. A generated wallet signed the actual API challenge through the frontend proxy, read its PostgreSQL-backed session and successfully signed out/revoked it. No email was sent. Desktop and 375px mobile layouts and invalid-fragment removal were inspected. Evidence: [notification-settings-verification.json](notification-settings-verification.json). Connected-wallet browser approval and live inbox delivery remain manual acceptance gates.
+
+The API resolves its Supabase CA path on the runtime host, supports the hosting `PORT`, and exposes failing health when storage or active reconciliation is unavailable. Docker/Fly/Railway deployment files are prepared; the local Docker engine was unavailable, so a hosted image build/start remains unverified. Public API hosting requires an account/budget decision. Resend key and sender are still unset in the private config; delivery stays off.
+
+[Submission copy, pitch and recording checklist](submission-pack.md) are prepared, together with a public SVG graphic. Founder registration/project-draft confirmation, real discovery evidence, both video recordings/links and the submission receipt remain outstanding. Prioritize submission tonight; notifications may be described as unactivated if hosting/domain verification cannot finish in time.
 
 ## October 11 — hosted notification database verified
 

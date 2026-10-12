@@ -69,7 +69,7 @@ Cut: countdown resets, time-lapses down again, heir re-initiates, challenge coun
 Caption: **"This time, no one answers."**
 
 **2:05–2:20 — Completion**
-Screen: Heir clicks "Complete the inheritance" → sign → then "Receive inheritance" → sign. Cut to Phantom or the Solana Explorer showing the SOL landing in the Heir's wallet.
+Screen: Heir reviews the saved payout and uses the current atomic completion/receive action → one wallet approval. Cut to Phantom or Solana Explorer showing SOL landing in the beneficiary wallets. Retain the real waiting-period cuts with a “time condensed” caption.
 Caption: **"Assets released — without us, without a key ever changing hands."**
 Voiceover (optional, this is the line to say out loud if you say anything): *"No company was needed to complete this. Anyone could have finished it."*
 
@@ -79,7 +79,7 @@ Text on screen:
 ```
 AfterKey
 Crypto inheritance, without sharing your keys.
-Live on Solana devnet — try it: [your vercel URL]
+Live on Solana devnet — try it: https://after-key-web.vercel.app
 ```
 No fade-to-black long outro. Cut clean.
 

@@ -1,6 +1,6 @@
 # Backend Architecture — AfterKey
 
-Implementation status (October 8, 2026): the initial notification slice is prepared in `apps/api`, with local tests and disabled delivery. See [its setup and activation gates](../apps/api/README.md). It currently uses direct chain polling/reconciliation, persisted opaque HttpOnly sessions and a minimal Drizzle schema. The Helius event pipeline, complete projections/activity APIs, cranker, Settings UI and live PostgreSQL/Resend deployment below remain planned. No notification delivery is currently advertised as live.
+Implementation status (October 12, 2026): the notification slice is implemented in `apps/api` and the frontend Settings flow is prepared, with local tests and disabled delivery. Supabase migration/storage/queue checks passed. See [setup and activation gates](../apps/api/README.md) and [hosting instructions](backend-deployment.md). It currently uses direct chain polling/reconciliation, persisted opaque HttpOnly sessions and a minimal Drizzle schema. The Helius event pipeline, complete projections/activity APIs and cranker below remain planned. Public API hosting and real Resend delivery still require activation; notification delivery is not advertised as live.
 
 ## 1. Do we need a backend? Yes — but only for what the chain can't do
 
