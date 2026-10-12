@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">AfterKey</title>
+  <rect width="256" height="256" rx="56" fill="#07070c"/>
+  <circle cx="128" cy="128" r="79" fill="none" stroke="#34e89e" stroke-width="3" opacity=".3"/>
+  <path d="M47 131H88L106 93L128 165L149 118L160 131H209" fill="none" stroke="#34e89e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

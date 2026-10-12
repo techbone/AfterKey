@@ -7,6 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 export const metadata: Metadata = {
+  icons: { icon: "/afterkey-mark.svg" },
   title: "AfterKey — crypto inheritance without sharing keys",
   description:
     "A crypto inheritance plan on Solana. Choose beneficiaries, check in to reset your timer, and keep control before release. Try the devnet preview with test SOL.",
