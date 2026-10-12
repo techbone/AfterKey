@@ -2,7 +2,7 @@
 
 Node **22.12+**, Fastify, PostgreSQL/Drizzle, pg-boss and a Resend transport. This first slice binds an optional email to a signing wallet, verifies email ownership, schedules 50/80/95% check-in reminders, and alerts the owner when a claim starts. It reads Solana; it has no wallet key and cannot move vault funds.
 
-**Status:** code and local API/worker tests are prepared. A hosted Supabase connection, migration, private-table protection, persistence, concurrent one-use tokens and queue retry after worker restart were verified on October 11; [evidence](../../docs/notification-database-verification.json). Real delivery is disabled. Provider delivery, public backend hosting and the frontend Settings/verification page remain deployment gates. The existing frontend still states that notifications are unavailable. No real emails were sent during preparation or database verification.
+**Status:** the Settings frontend now supports wallet sign-in, mailbox verification, preferences, sign-out and removal. A hosted Supabase connection, migration, private-table protection, persistence, concurrent one-use tokens and queue retry after worker restart were verified on October 11; [evidence](../../docs/notification-database-verification.json). Real delivery is disabled. Provider delivery and public backend hosting remain activation gates; [deployment guide](../../docs/backend-deployment.md). No real emails were sent during preparation or database verification.
 
 ## Local preparation
 
@@ -35,6 +35,7 @@ AFTERKEY_TEST_DATABASE_URL=postgresql://TEST_USER:TEST_PASSWORD@127.0.0.1:5432/a
 | --- | --- |
 | `POST /auth/nonce` | `{ wallet }` → single-use, five-minute SIWS input and exact message |
 | `POST /auth/siws` | `{ wallet, nonce, signature }`, signature = base64 Ed25519 signature of that exact message; sets a one-hour HttpOnly session cookie |
+| `POST /auth/logout` | Revokes the current session and clears its cookie, preserving preferences |
 | `GET /me` | Authenticated wallet's email and preferences |
 | `PATCH /me` | Optional `email`, `enabled`, `checkinReminders`, `claimAlerts`; signed session required |
 | `POST /me/verify-email` | `{ token }`; proves mailbox access and consumes the verification token |
@@ -73,7 +74,7 @@ NOTIFICATIONS_DELIVERY_ENABLED=false
 
 Use a private backend PostgreSQL connection with appropriate TLS settings and a database role permitted to run the migrations and create/use the pg-boss schema. Migrations enable row-level security without browser/client policies for all private tables. Do not expose the pg-boss schema through a public data API. The backend is the only intended database client.
 
-The repository includes Supabase's public root certificate in `certs/supabase-prod-ca-2021.crt`. Configure the private connection URI with `sslmode=verify-full` and `sslrootcert` pointing to that file's absolute path on the runtime host. Update the path when moving from a Mac to hosted execution. This validates both the certificate chain and pooler hostname. See [certificate provenance](certs/README.md); the certificate contains no database credentials.
+The repository includes Supabase's public root certificate in `certs/supabase-prod-ca-2021.crt`. The API automatically resolves that file on its runtime host and enforces `verify-full` for Supabase URIs, replacing stale Mac paths. This validates both the certificate chain and pooler hostname. See [certificate provenance](certs/README.md); the certificate contains no database credentials.
 
 ```sh
 npm run migrate:api
@@ -83,7 +84,7 @@ npm run start:api
 Before switching delivery on:
 
 1. Run the migration against the configured database and verify persistence across restart, concurrent nonce consumption and pg-boss retries.
-2. Finish the frontend Settings flow, email fragment verification and unsubscribe controls. `/settings` is not implemented by this slice; sending links before that page exists would be unusable.
+2. Test the completed frontend Settings flow, email fragment verification, disable and removal controls through the publicly hosted API. The same-origin proxy requires Vercel's private `AFTERKEY_API_URL` setting.
 3. Configure Resend's verified sender domain and a backend host. Test delivery to the founder's explicitly opted-in address and retain the receipt.
 4. Run a compressed devnet reminder/claim/veto/closure walkthrough. Confirm reminders are superseded after check-in, alerts stop after veto/closure, and notification downtime does not block vault actions. Measure claim-alert delivery against the five-minute target.
 5. Add queue-failure and stale-reconciliation monitoring before calling the service reliable.

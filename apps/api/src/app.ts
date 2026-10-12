@@ -15,7 +15,7 @@ function emailAddress(value: unknown): string {
   return value.trim().toLowerCase();
 }
 
-export async function createApp(options: { store: Store; queue: Queue; mailer: Mailer; origin: string; programId: string; mode: string; now?: () => Date; logger?: boolean }) {
+export async function createApp(options: { store: Store; queue: Queue; mailer: Mailer; origin: string; programId: string; mode: string; now?: () => Date; logger?: boolean; checkReady?: () => Promise<void> }) {
   const now = options.now ?? (() => new Date());
   const secure = new URL(options.origin).protocol === "https:";
   const cookieName = secure ? "__Host-afterkey-session" : "afterkey-session";
@@ -34,7 +34,7 @@ export async function createApp(options: { store: Store; queue: Queue; mailer: M
     app.log.error({ code: "api_operation_failed" }, "API operation failed; sensitive details omitted");
     return reply.code(503).send({ error: "This operation is temporarily unavailable." });
   });
-  app.get("/healthz", async () => ({ status: "ok", storage: options.mode, deliveryConfigured: options.mailer.enabled, network: "devnet", programId: options.programId }));
+  app.get("/healthz", async () => { await options.checkReady?.(); return { status: "ok", storage: options.mode, deliveryConfigured: options.mailer.enabled, network: "devnet", programId: options.programId }; });
   app.post("/auth/nonce", async request => auth.challenge(walletAddress(object(request.body).wallet)));
   app.post("/auth/siws", async (request, reply) => {
     const body = object(request.body); const wallet = walletAddress(body.wallet);
@@ -44,6 +44,12 @@ export async function createApp(options: { store: Store; queue: Queue; mailer: M
     return { wallet, expiresAt: session.expiresAt.toISOString() };
   });
   app.get("/me", async request => options.store.getProfile(await auth.session(request.cookies[cookieName])));
+  app.post("/auth/logout", async (request, reply) => {
+    const token = request.cookies[cookieName];
+    if (token && /^[A-Za-z0-9_-]{43}$/.test(token)) await options.store.deleteSession(digest(token));
+    reply.clearCookie(cookieName, { path: "/", httpOnly: true, secure, sameSite: secure ? "none" : "lax" });
+    return { signedOut: true };
+  });
   app.patch("/me", async request => {
     const wallet = await auth.session(request.cookies[cookieName]); const body = object(request.body);
     if (Object.keys(body).some(k => !["email", "enabled", "checkinReminders", "claimAlerts"].includes(k))) throw new ApiError(400, "Unknown preference field.");
@@ -75,7 +81,7 @@ export async function createApp(options: { store: Store; queue: Queue; mailer: M
   app.delete("/me", async (request, reply) => {
     const wallet = await auth.session(request.cookies[cookieName]);
     await options.store.deleteUser(wallet);
-    reply.clearCookie(cookieName, { path: "/", secure, sameSite: secure ? "none" : "lax" });
+    reply.clearCookie(cookieName, { path: "/", httpOnly: true, secure, sameSite: secure ? "none" : "lax" });
     return { removed: true };
   });
   return app;

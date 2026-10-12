@@ -26,14 +26,16 @@ async function main() {
     if (postgres) await postgres.ready();
     if (queue instanceof PostgresQueue) await queue.start();
     let busy = false;
+    let lastSync = 0;
     const sync = async () => {
       if (busy) return; busy = true;
-      try { const result = await engine.reconcile(); if (result.corrected) console.log(JSON.stringify({ event: "projection_reconciled", corrected: result.corrected })); }
+      try { const result = await engine.reconcile(); lastSync = Date.now(); if (result.corrected) console.log(JSON.stringify({ event: "projection_reconciled", corrected: result.corrected })); }
       catch { console.error("Notification reconciliation failed; on-chain actions remain independent."); }
       finally { busy = false; }
     };
     if (postgres && mailer.enabled) { await source.ready(); await engine.start(); await sync(); timer = setInterval(() => void sync(), config.interval * 1000); }
-    const app = await createApp({ store, queue, mailer, origin: config.origin, programId: PROGRAM_ID, mode: config.mode, logger: true });
+    const app = await createApp({ store, queue, mailer, origin: config.origin, programId: PROGRAM_ID, mode: config.mode, logger: true,
+      checkReady: async () => { await postgres?.ready(); if (mailer.enabled && (!lastSync || Date.now() - lastSync > config.interval * 3000)) throw new Error("Chain reconciliation is stale."); } });
     app.addHook("onClose", cleanup);
     await app.listen({ port: config.port, host: config.host });
     const shutdown = () => { void app.close(); };

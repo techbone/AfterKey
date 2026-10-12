@@ -6,7 +6,7 @@ export function readConfig(env: NodeJS.ProcessEnv) {
   const origin = new URL(env.FRONTEND_ORIGIN ?? "http://127.0.0.1:3101");
   if (origin.pathname !== "/" || origin.search || origin.hash || origin.username || origin.password) throw new Error("FRONTEND_ORIGIN must contain only the frontend origin.");
   if (env.NODE_ENV === "production" && origin.protocol !== "https:") throw new Error("Production requires an HTTPS frontend origin.");
-  const port = Number(env.API_PORT ?? "8080"); const interval = Number(env.POLL_INTERVAL_SECONDS ?? "30");
+  const port = Number(env.API_PORT ?? env.PORT ?? "8080"); const interval = Number(env.POLL_INTERVAL_SECONDS ?? "30");
   if (!Number.isInteger(port) || port < 1 || port > 65535 || !Number.isInteger(interval) || interval < 10 || interval > 60) throw new Error("Invalid API_PORT or POLL_INTERVAL_SECONDS.");
   if (!!env.RESEND_API_KEY !== !!env.RESEND_FROM) throw new Error("Configure both RESEND_API_KEY and RESEND_FROM, or leave both unset.");
   const deliveryEnabled = env.NOTIFICATIONS_DELIVERY_ENABLED === "true";

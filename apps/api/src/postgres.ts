@@ -1,13 +1,14 @@
 import { and, eq, gt, lt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { databaseUrl } from "./database-url.js";
 import * as tables from "./schema.js";
 import { defaultProfile, type Challenge, type Delivery, type EmailToken, type Profile, type Session, type Store, type VaultSnapshot } from "./types.js";
 
 export class PostgresStore implements Store {
   readonly pool: pg.Pool;
   readonly db: ReturnType<typeof drizzle<typeof tables>>;
-  constructor(url: string) { this.pool = new pg.Pool({ connectionString: url, max: 5 }); this.db = drizzle(this.pool, { schema: tables }); }
+  constructor(url: string) { this.pool = new pg.Pool({ connectionString: databaseUrl(url), max: 5, connectionTimeoutMillis: 10_000, query_timeout: 15_000 }); this.db = drizzle(this.pool, { schema: tables }); }
   async ready() { await this.pool.query("select 1"); }
   async close() { await this.pool.end(); }
   async putChallenge(v: Challenge) {
@@ -18,6 +19,7 @@ export class PostgresStore implements Store {
   async consumeChallenge(id: string, now: Date) { return (await this.db.delete(tables.challenges).where(and(eq(tables.challenges.id, id), gt(tables.challenges.expiresAt, now))).returning()).length === 1; }
   async putSession(v: Session) { await this.db.delete(tables.sessions).where(lt(tables.sessions.expiresAt, new Date())); await this.db.insert(tables.sessions).values(v); }
   async getSession(hash: string) { return (await this.db.select().from(tables.sessions).where(eq(tables.sessions.hash, hash)).limit(1))[0] ?? null; }
+  async deleteSession(hash: string) { await this.db.delete(tables.sessions).where(eq(tables.sessions.hash, hash)); }
   async getProfile(wallet: string) { return (await this.db.select().from(tables.profiles).where(eq(tables.profiles.wallet, wallet)).limit(1))[0] ?? defaultProfile(wallet); }
   async putProfile(v: Profile) { await this.db.insert(tables.profiles).values(v).onConflictDoUpdate({ target: tables.profiles.wallet, set: v }); }
   async putEmailToken(v: EmailToken) { await this.db.delete(tables.emailTokens).where(lt(tables.emailTokens.expiresAt, new Date())); await this.db.insert(tables.emailTokens).values(v); }

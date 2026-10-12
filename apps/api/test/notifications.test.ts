@@ -83,6 +83,18 @@ test("wallet proof is domain-bound, single-use, and sets a private session cooki
   } finally { await f.app.close(); }
 });
 
+test("signing out revokes the current settings session and preserves email preferences", async () => {
+  const f = await fixture();
+  try {
+    const { cookie } = await f.optIn();
+    const response = await f.post("/auth/logout", {}, cookie);
+    assert.equal(response.statusCode, 200); assert.match(response.headers["set-cookie"] as string, /HttpOnly/);
+    assert.equal((await f.app.inject({ method: "GET", url: "/me", headers: { cookie } })).statusCode, 401);
+    assert.equal((await f.store.getProfile(f.wallet)).email, "owner@example.test");
+    assert.equal((await f.app.inject({ method: "GET", url: "/me", headers: { cookie: await f.login() } })).statusCode, 200);
+  } finally { await f.app.close(); }
+});
+
 test("CSRF, authentication and disabled delivery fail closed without enabling preferences", async () => {
   const f = await fixture(new DisabledMailer());
   try {

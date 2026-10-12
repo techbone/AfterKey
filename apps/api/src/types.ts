@@ -14,6 +14,7 @@ export interface Store {
   putChallenge(value: Challenge): Promise<void>; getChallenge(id: string): Promise<Challenge | null>;
   consumeChallenge(id: string, now: Date): Promise<boolean>;
   putSession(value: Session): Promise<void>; getSession(hash: string): Promise<Session | null>;
+  deleteSession(hash: string): Promise<void>;
   getProfile(wallet: string): Promise<Profile>; putProfile(value: Profile): Promise<void>;
   putEmailToken(value: EmailToken): Promise<void>; getEmailToken(hash: string): Promise<EmailToken | null>;
   verifyEmail(hash: string, now: Date): Promise<boolean>; deleteUser(wallet: string): Promise<void>;

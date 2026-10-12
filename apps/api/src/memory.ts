@@ -9,6 +9,7 @@ export class MemoryStore implements Store {
   async consumeChallenge(id: string, now: Date) { const value = this.challenges.get(id); if (!value || value.expiresAt <= now) return false; this.challenges.delete(id); return true; }
   async putSession(v: Session) { this.sessions.set(v.hash, structuredClone(v)); }
   async getSession(hash: string) { return structuredClone(this.sessions.get(hash) ?? null); }
+  async deleteSession(hash: string) { this.sessions.delete(hash); }
   async getProfile(wallet: string) { return structuredClone(this.profiles.get(wallet) ?? defaultProfile(wallet)); }
   async putProfile(v: Profile) { this.profiles.set(v.wallet, structuredClone(v)); }
   async putEmailToken(v: EmailToken) { this.tokens.set(v.hash, structuredClone(v)); }

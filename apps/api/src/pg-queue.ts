@@ -1,11 +1,12 @@
 import { PgBoss } from "pg-boss";
+import { databaseUrl } from "./database-url.js";
 import type { EmailJob, Queue } from "./types.js";
 
 const NAME = "afterkey-email";
 export class PostgresQueue implements Queue {
   private boss: PgBoss;
   constructor(url: string) {
-    this.boss = new PgBoss({ connectionString: url });
+    this.boss = new PgBoss({ connectionString: databaseUrl(url), max: 3, connectionTimeoutMillis: 10_000 });
     this.boss.on("error", () => console.error("Notification queue error; inspect service health without exposing message payloads."));
   }
   async start() { await this.boss.start(); await this.boss.createQueue(NAME, { policy: "exclusive", retryLimit: 5, retryDelay: 30, retryBackoff: true }); }
