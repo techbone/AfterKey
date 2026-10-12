@@ -2,7 +2,7 @@
 
 ## Submission deadline and founder tasks
 
-The [official rules](https://colosseum.com/legal/Crypto%20World's%20Fair%20Hackathon%20Rules.pdf), section 5, end the contest on October 12 at 11:59 p.m. Pacific: **October 13 at 7:59 a.m. Lagos time**. Submit tonight and retain the portal receipt. The [submission FAQ](https://colosseum.com/hackathon) requests a 2–3 minute presentation, a demo no longer than 3 minutes, team/location details, a graphic, repository and market/distribution information.
+The [official rules](https://colosseum.com/legal/Crypto%20World's%20Fair%20Hackathon%20Rules.pdf), section 5, end the contest on October 12 at 11:59 p.m. Pacific: **October 13 at 7:59 a.m. Lagos time**. Submit tonight and retain the portal receipt. The current project form requests a separate pitch video of up to 2 minutes and a live-product demo of up to 3 minutes, plus team/location details, a graphic, repository and market/distribution information.
 
 Founder tasks: confirm registration and project draft; fill in team/location and real customer-discovery evidence; record and upload both videos; check every public link; submit and save the receipt. No receipt or recording has been supplied yet.
 
@@ -24,23 +24,21 @@ Founder tasks: confirm registration and project draft; fill in team/location and
 
 **Demand validation:** Founder self-reported core-flow testing; repository contains signed devnet smoke evidence. No external tester count, paid customers, revenue or signed partnerships are claimed. Add actual interview/tester evidence here before submission if available.
 
-## Presentation script — approximately 2½ minutes
+## Pitch video script — approximately 1 minute 40 seconds
 
-If someone cannot return to their crypto wallet, the people they care about may have no safe way to receive its assets. Giving away a seed phrase solves access by giving away control. AfterKey offers a plan with rules that both sides can understand.
+Hi, I’m [name], based in [country], and I’m building AfterKey: a Solana inheritance plan that does not require sharing your seed phrase.
 
-An owner connects a Solana wallet, chooses beneficiary wallets and their shares, sets an inactivity period and a separate response window, then funds a vault. The review screen shows exactly what the wallet will approve. Check-ins reset the inactivity timer.
+If a crypto owner cannot return to their wallet, their family may have no safe path to the assets. Sharing a seed phrase in advance gives away control immediately. I wanted an alternative with clear rules for both sides.
 
-After inactivity, a named beneficiary can start a claim. The response window gives the owner time to check in or veto it. If nobody responds, the program releases the vault's assets according to the stored shares. Solana enforces those destinations; AfterKey does not need to approve completion.
+An owner names beneficiary wallets and shares, sets an inactivity period and a separate response window, then funds a vault. Check-ins keep the plan active. After inactivity, a beneficiary can start a claim. The owner can veto it before release. If nobody responds, the Solana program pays the saved beneficiaries. A company signature is not required.
 
-We focused on the failure cases as well as the happy path. Creation and funding are atomic. Confirmed transactions have persistent receipts. Cancelled and completed plans retain a record, and assets arriving later can still be recovered under the original rights. The History screen makes those rights visible rather than leaving users with a vanished plan.
+During this hackathon, we extended an earlier prototype into a working devnet flow: atomic creation and funding, clearer wallet approvals and receipts, claims and vetoes, SOL payout, retained History, and recovery for SOL arriving after closure. The app and source are public.
 
-The prototype is live on Solana devnet and its current web flow supports SOL. It is upgradeable, unaudited, and based on inactivity rather than proof of death. We make those limits explicit. Owners set their own reminders and check vault status; this release does not send email or claim alerts.
+This is an unaudited, upgradeable devnet prototype. The web app supports SOL, measures inactivity rather than death, and asks owners to set their own reminders. We are now focused on watching owners and beneficiaries use it without coaching and learning where the handoff needs to improve.
 
-Our first audience is Solana holders and the relatives they name. Our next validation step is to watch both sides complete the flow without coaching, measure missed check-ins and confusing handoffs, and use that evidence before expanding distribution or asking users to trust real funds.
+AfterKey gives families a plan they can inspect and act on, while the owner keeps their keys.
 
-AfterKey is a practical inheritance plan: clear rules, visible deadlines, and no seed phrase passed from one person to another. Try the devnet demo and inspect the public source.
-
-Insert a short factual founder introduction and real discovery evidence; do not invent traction. Check the final recorded duration.
+Replace the name, country and first-person contribution with accurate team details. Record this separately from the product demo. Keep the final pitch under 2 minutes.
 
 ## Demo recording checklist — maximum 3 minutes
 
