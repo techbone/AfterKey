@@ -18,11 +18,11 @@ Founder tasks: confirm registration and project draft; fill in team/location and
 
 **Links:** [App](https://after-key-web.vercel.app), [Source](https://github.com/techbone/AfterKey), [Trust and limits](https://after-key-web.vercel.app/security), [History](https://after-key-web.vercel.app/history), [Program](https://explorer.solana.com/address/DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7?cluster=devnet), [PNG graphic](https://after-key-web.vercel.app/afterkey-mark.png), [SVG source](https://after-key-web.vercel.app/afterkey-mark.svg).
 
-**Build-period disclosure:** The repository has a July 2026 baseline. Work during the hackathon added atomic create/fund, cancel/recovery and inheritance completion, transaction/input reliability, owner/heir UX, a fresh verified devnet deployment after loss of the original authority, closed-record History and SOL recovery, plus notification authentication, persistent storage, verified-email jobs and Settings. Describe notifications as live only after public hosting and real inbox verification have passed. Earlier vaults were not migrated.
+**Build-period disclosure:** The repository has a July 2026 baseline. Work during the hackathon added atomic create/fund, cancel/recovery and inheritance completion, transaction/input reliability, owner/heir UX, a fresh verified devnet deployment after loss of the original authority, closed-record History and SOL recovery. Notification backend preparation is retained in the repository as deferred work; notification UI and the frontend proxy were removed from the submission. No email delivery is claimed. Earlier vaults were not migrated.
 
 **Initial distribution hypothesis:** Start with Solana holders who want a simple plan for a trusted relative. Recruit small founder-led tests through existing Solana communities, measure whether owners and beneficiaries can complete the lifecycle unaided, and improve the handoff instructions. Potential future partnerships with wallets and estate-planning services are proposals, not existing agreements.
 
-**Demand validation:** Founder self-reported core-flow testing; repository contains signed devnet smoke evidence and database verification. No external tester count, paid customers, revenue or signed partnerships are claimed. Add actual interview/tester evidence here before submission if available.
+**Demand validation:** Founder self-reported core-flow testing; repository contains signed devnet smoke evidence. No external tester count, paid customers, revenue or signed partnerships are claimed. Add actual interview/tester evidence here before submission if available.
 
 ## Presentation script — approximately 2½ minutes
 
@@ -34,7 +34,7 @@ After inactivity, a named beneficiary can start a claim. The response window giv
 
 We focused on the failure cases as well as the happy path. Creation and funding are atomic. Confirmed transactions have persistent receipts. Cancelled and completed plans retain a record, and assets arriving later can still be recovered under the original rights. The History screen makes those rights visible rather than leaving users with a vanished plan.
 
-The prototype is live on Solana devnet and its current web flow supports SOL. It is upgradeable, unaudited, and based on inactivity rather than proof of death. We make those limits explicit. Optional email settings have wallet authentication, mailbox verification and persistent jobs; describe their activation status accurately in the recording.
+The prototype is live on Solana devnet and its current web flow supports SOL. It is upgradeable, unaudited, and based on inactivity rather than proof of death. We make those limits explicit. Owners set their own reminders and check vault status; this release does not send email or claim alerts.
 
 Our first audience is Solana holders and the relatives they name. Our next validation step is to watch both sides complete the flow without coaching, measure missed check-ins and confusing handoffs, and use that evidence before expanding distribution or asking users to trust real funds.
 
@@ -50,7 +50,6 @@ Insert a short factual founder introduction and real discovery evidence; do not 
 4. Beneficiary starts a claim; owner vetoes it. Show the reset state.
 5. After another actual wait and claim, complete/receive the inheritance using the current atomic flow. Show the Explorer payout.
 6. Show the retained History record and original recovery rights.
-7. Show Settings briefly. If delivery is off, say it is not active yet; do not simulate a real inbox receipt.
-8. End with the app and repository URLs. Retain signatures separately for evidence.
+7. End with the app and repository URLs. Retain signatures separately for evidence.
 
 No contract upgrade is required for this demo. Freeze core program changes today unless a verified defect blocks it.

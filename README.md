@@ -4,13 +4,13 @@ A crypto inheritance plan on Solana. An owner deposits assets into a program-con
 
 [Live devnet prototype](https://after-key-web.vercel.app) · [Architecture](docs/architecture.md) · [Readiness and submission plan](docs/hackathon-readiness.md)
 
-**Status:** unaudited, upgradeable devnet prototype. The web interface supports SOL. SPL-token instructions exist in the program; token management and email notifications are not available in the web interface yet. Use test assets only. Local source changes are not automatically reflected in the public deployment.
+**Status:** unaudited, upgradeable devnet prototype. The web interface supports SOL. SPL-token instructions exist in the program; token management is not available in the web interface. Email notifications are outside this submission’s scope; owners must set their own reminders and check vault status. Use test assets only. Local source changes are not automatically reflected in the public deployment.
 
 Current devnet program: [`DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`](https://explorer.solana.com/address/DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7?cluster=devnet). The October 6 replacement deployment has verified bytecode parity and live creation, cancellation and recovery receipts in [devnet-deployment.json](docs/devnet-deployment.json). It uses a fresh address after loss of the original upgrade key; old vaults remain under the original program.
 
 [History & recovery](https://after-key-web.vercel.app/history) shows retained Closed records and supports remaining-SOL recovery with the original owner/beneficiary rights. Public lookup is read-only; signing uses the connected wallet. The view covers SOL on the current devnet deployment, with [live recovery evidence](docs/history-recovery-verification.json).
 
-The [notification backend](apps/api/README.md) and `/settings` add wallet sign-in, verified email preferences and a reminder/claim-alert worker. Delivery stays disabled until provider setup and public hosting pass acceptance checks. Settings shows the actual service status. See the [deployment guide](docs/backend-deployment.md) and [submission pack](docs/submission-pack.md).
+The submission focuses on the on-chain SOL lifecycle and History/recovery. It needs no PostgreSQL, Resend or separate API host. Notification UI and its web proxy have been removed; prepared backend source is retained for future work with delivery disabled. See the [submission pack](docs/submission-pack.md).
 
 ## Run the web app
 
@@ -70,7 +70,7 @@ This protects records closed by the updated program. It cannot restore a record 
 - `scripts`: deployment configuration, read-only verification and live demo.
 - `docs`: architecture, product, security and business plans.
 
-The planned notification/indexer backend remains a convenience layer outside the custody/authorization path. Chain actions must remain usable if that backend is unavailable.
+The optional backend source in `apps/api` is deferred and is not deployed or connected to the submitted app. Vault actions use Solana directly, without a database or email provider.
 
 ## Competition history
 

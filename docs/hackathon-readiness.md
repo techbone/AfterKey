@@ -1,5 +1,11 @@
 # AfterKey hackathon readiness — October 12, 2026
 
+## October 12 — submission scope frozen: core vaults, no notifications
+
+The founder dropped email notifications from the submission. Settings, the frontend notification proxy, notification client helpers and their frontend tests have been removed. Navigation, creation instructions, trust copy and the submission script now focus on the SOL lifecycle and retained-record recovery. The prepared backend and its historical verification remain as deferred source; delivery is disabled and the submitted web app does not connect to it.
+
+No PostgreSQL, Resend, Fly.io or separate API hosting setup is needed for the submission. Owners must set their own reminders and check for claims before release. Type checking, the production web build and all three vault input tests passed after removal. The build exposes only the core app routes, with no Settings page or notification API. Remaining founder tasks are the presentation/demo recordings, project-form details, public-link checks and submission receipt. The entries below describe earlier milestones and do not override this scope decision.
+
 Assessment baseline: `5f7a0f1` (July 14, 2026). This report records inspected source, commands actually run, and public deployment reads. The founder reported completing the post-deployment browser checklist on October 7; individual browser signatures/screenshots have not been supplied. Earlier assessments are retained as historical evidence.
 
 ## October 12 — Settings and submission preparation
@@ -10,7 +16,7 @@ Verification: 15 API tests, 6 notification frontend/proxy tests and 3 input test
 
 The API resolves its Supabase CA path on the runtime host, supports the hosting `PORT`, and exposes failing health when storage or active reconciliation is unavailable. Docker/Fly/Railway deployment files are prepared; the local Docker engine was unavailable, so a hosted image build/start remains unverified. Public API hosting requires an account/budget decision. Resend key and sender are still unset in the private config; delivery stays off.
 
-[Submission copy, pitch and recording checklist](submission-pack.md) are prepared, together with a public SVG graphic. Founder registration/project-draft confirmation, real discovery evidence, both video recordings/links and the submission receipt remain outstanding. Prioritize submission tonight; notifications may be described as unactivated if hosting/domain verification cannot finish in time.
+[Submission copy, pitch and recording checklist](submission-pack.md) are prepared, together with a public SVG graphic. Founder registration/project-draft confirmation, real discovery evidence, both video recordings/links and the submission receipt remain outstanding. Prioritize submission tonight. Email notifications were subsequently removed from the submission scope, as recorded above.
 
 ## October 11 — hosted notification database verified
 

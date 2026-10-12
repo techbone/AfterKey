@@ -1,4 +1,6 @@
-# Prepared notification backend
+# Prepared notification backend — deferred
+
+**October 12 scope decision:** notifications are excluded from the hackathon submission. The Settings page and web proxy were removed. This source is retained for later work; do not deploy it or enable delivery for the current submission. The web app needs no database or email provider. Status and activation instructions below record the earlier preparation milestone.
 
 Node **22.12+**, Fastify, PostgreSQL/Drizzle, pg-boss and a Resend transport. This first slice binds an optional email to a signing wallet, verifies email ownership, schedules 50/80/95% check-in reminders, and alerts the owner when a claim starts. It reads Solana; it has no wallet key and cannot move vault funds.
 

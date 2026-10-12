@@ -1,4 +1,6 @@
-# Deploy the notification API
+# Deferred notification deployment
+
+**October 12:** the founder removed notifications from submission scope. No API hosting, Resend setup or frontend API variable is needed. The Settings page and proxy described below were removed; these historical instructions require restoring and revalidating that integration before future use. Do not deploy or activate this backend for the current submission.
 
 The frontend remains on Vercel. The API needs a persistent process for pg-boss and reconciliation; deploy one instance using the root build context and `apps/api/Dockerfile`. Database credentials and the Resend API key are server secrets. `.dockerignore` excludes local environment files and deployment keys.
 

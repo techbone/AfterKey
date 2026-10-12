@@ -1,5 +1,7 @@
 # System Architecture — AfterKey
 
+**Current submission scope (October 12, 2026):** Vercel frontend → wallet-signed transactions and direct RPC reads → Solana devnet program. Notifications, hosted PostgreSQL, indexing and a backend cranker are deferred. The diagram and detailed backend paths below describe the longer-term architecture, not deployed submission features. Owners set their own reminders and check for claims.
+
 ## 1. Architecture at a glance
 
 ```
@@ -49,7 +51,7 @@ A backend cron attempts `finalize_claim` + `distribute` for any vault past its w
 ## 4. Why each major choice
 
 - **Anchor over raw Solana programs:** account validation macros eliminate the largest class of Solana exploits (missing owner/signer checks); IDL gives the frontend a typed client for free; the audit ecosystem knows Anchor. The runtime overhead is irrelevant at our throughput. See smart-contracts.md.
-- **Backend: yes, but thin.** A dead-man's switch without reminders is a foot-gun — notifications are a product requirement (preventing false release), not a nicety. But it must stay off the trust path. Fastify (fast, minimal, TS-native), Postgres via Supabase (managed, free tier, row-level security if we ever expose it directly), pg-boss for jobs (queues inside Postgres — one datastore, no Redis to operate; swap for BullMQ+Redis only if job volume demands it), Helius webhooks for indexing (no Geyser plugin to run at our scale). See backend.md.
+- **Backend: yes, but thin.** Automated reminders are deferred beyond the devnet submission. Owners currently set their own reminders and check for claims; future notifications must stay off the custody and authorization path. Fastify (fast, minimal, TS-native), Postgres via Supabase (managed, free tier, row-level security if we ever expose it directly), pg-boss for jobs (queues inside Postgres — one datastore, no Redis to operate; swap for BullMQ+Redis only if job volume demands it), Helius webhooks for indexing (no Geyser plugin to run at our scale). See backend.md.
 - **Frontend: Next.js over Vite.** We need a marketing site + SEO content ("crypto inheritance") and an app in one deploy; App Router + Vercel gives that with zero infra. Wallet-adapter is the ecosystem standard. TanStack Query fits the "chain is the source of truth, poll and cache" model. See frontend.md.
 - **Helius over self-hosted indexing:** webhook delivery + enhanced tx parsing for ~$0–50/mo versus running Geyser/validator infra. Replaceable later; the events table is designed so a re-index from any RPC provider can rebuild state.
 
