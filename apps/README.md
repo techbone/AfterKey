@@ -1,6 +1,4 @@
-# apps/
+# Applications
 
-- `web/` — Next.js frontend, scaffolded in Milestone 3 (docs/frontend.md)
-- `api/` — Fastify indexer + notification service, scaffolded in Milestone 4 (docs/backend.md)
-
-Kept empty until their milestones — scaffolding ahead of the program's IDL freeze just creates churn.
+- `web/` is the submitted Next.js app. It reads Solana devnet directly and uses connected wallets for transactions.
+- `api/` is a prepared notification backend. It is not deployed or connected to the submitted app, and email delivery is disabled. See [its README](api/README.md) for local development.

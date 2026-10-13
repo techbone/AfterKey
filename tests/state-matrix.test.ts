@@ -1,5 +1,5 @@
 /**
- * State-machine × signer matrix (docs/smart-contracts.md §10).
+ * State-machine × signer matrix.
  * Every instruction attempted from every reachable state by every signer
  * class; invalid cells must fail with the EXACT PolError code. Plus timing
  * boundary tests (`>` semantics) and the pause-asymmetry invariant.

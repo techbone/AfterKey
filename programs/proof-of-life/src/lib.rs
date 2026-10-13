@@ -2,7 +2,7 @@
 //!
 //! Dead-man's switch: assets release to owner-chosen beneficiaries only after
 //! a configurable inactivity period AND an unanswered challenge window.
-//! Design source of truth: docs/smart-contracts.md.
+//! Current behavior is defined by this program and verified by the test suite.
 
 use anchor_lang::prelude::*;
 

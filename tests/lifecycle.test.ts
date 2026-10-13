@@ -3,8 +3,8 @@
  * config → vault → deposit → check-in → claim (early = fail) → claim →
  * veto → claim again → finalize (early = fail) → finalize → distribute →
  * shares verified. This is the Milestone 1 "time-based assertions are
- * testable" spike; the exhaustive matrix (docs/smart-contracts.md §10)
- * builds on this harness.
+ * testable" spike; the broader state and timing tests
+ * build on this harness.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";

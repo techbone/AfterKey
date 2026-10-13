@@ -20,6 +20,7 @@ test-ledger/
 .DS_Store
 .idea/
 *.log
+.local-docs/
 
 # Anchor local keys (program deploy keypairs are managed via Squads, never committed)
 *.so

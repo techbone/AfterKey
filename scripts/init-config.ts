@@ -2,7 +2,7 @@ import type { ProofOfLife } from "../packages/program/proof_of_life.js";
 /**
  * One-time per cluster: initialize the Config PDA right after deploy.
  * The signer becomes admin — on mainnet this MUST be executed by the Squads
- * multisig in the same ceremony as the deploy (docs/repo-blueprint.md §3).
+ * multisig in the same ceremony as the deploy.
  *
  *   npx tsx scripts/init-config.ts
  */

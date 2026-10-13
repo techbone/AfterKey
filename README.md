@@ -2,7 +2,7 @@
 
 A crypto inheritance plan on Solana. An owner deposits assets into a program-controlled vault, names beneficiaries and shares, and chooses an inactivity period. A beneficiary can initiate a claim after inactivity; a separate response window gives the owner time to veto. If the owner does not respond before release, the stored beneficiaries can receive their shares without key handover.
 
-[Live devnet prototype](https://after-key-web.vercel.app) · [Architecture](docs/architecture.md) · [Readiness and submission plan](docs/hackathon-readiness.md)
+[Live devnet prototype](https://after-key-web.vercel.app) · [Architecture](docs/architecture.md) · [Deployment evidence](docs/devnet-deployment.json)
 
 **Status:** unaudited, upgradeable devnet prototype. The web interface supports SOL. SPL-token instructions exist in the program; token management is not available in the web interface. Email notifications are outside this submission’s scope; owners must set their own reminders and check vault status. Use test assets only. Local source changes are not automatically reflected in the public deployment.
 
@@ -10,7 +10,7 @@ Current devnet program: [`DRJtSa5NS7FNdqko5xhbhQSPwLyYQoJA65cYfzWpRgc7`](https:/
 
 [History & recovery](https://after-key-web.vercel.app/history) shows retained Closed records and supports remaining-SOL recovery with the original owner/beneficiary rights. Public lookup is read-only; signing uses the connected wallet. The view covers SOL on the current devnet deployment, with [live recovery evidence](docs/history-recovery-verification.json).
 
-The submission focuses on the on-chain SOL lifecycle and History/recovery. It needs no PostgreSQL, Resend or separate API host. Notification UI and its web proxy have been removed; prepared backend source is retained for future work with delivery disabled. See the [submission pack](docs/submission-pack.md).
+The submitted app focuses on the on-chain SOL lifecycle and History/recovery. It needs no PostgreSQL, Resend or separate API host. Notification UI and its web proxy were removed; prepared backend source remains in `apps/api` for future work with delivery disabled.
 
 ## Run the web app
 
@@ -49,7 +49,7 @@ npm run check:deploy
 
 The deployment check is read-only and uses no wallet secrets. If a local artifact exists, it compares that artifact with public deployed bytecode and fails on mismatch. Building a new artifact does not deploy it. Preserve the original deployment identity and upgrade authority when preparing a devnet upgrade; a fresh build's generated keypair is not the existing program's deployment keypair.
 
-Devnet deployments now use an encrypted key backup and macOS Keychain rather than an unencrypted default wallet file. See [key recovery and deployment](docs/devnet-key-recovery.md) for backup, restore, funding and verified deployment commands. Keep the encrypted backup off this machine and its password separately.
+The devnet deployment authority is backed up outside this repository. The deployment and bytecode verification record is in [devnet-deployment.json](docs/devnet-deployment.json).
 
 ## Closure and recovery
 
@@ -67,11 +67,11 @@ This protects records closed by the updated program. It cannot restore a record 
 - `apps/web`: Next.js application; wallet signatures and direct chain reads.
 - `packages/program`: committed IDL and client types.
 - `tests`: LiteSVM lifecycle/adversarial tests and exact amount/share validation.
-- `scripts`: deployment configuration, read-only verification and live demo.
-- `docs`: architecture, product, security and business plans.
+- `scripts`: deployment configuration and read-only verification tools.
+- `docs`: current architecture, closure/recovery design and deployment evidence.
 
 The optional backend source in `apps/api` is deferred and is not deployed or connected to the submitted app. Vault actions use Solana directly, without a database or email provider.
 
 ## Competition history
 
-The original prototype was committed in July 2026. Crypto World's Fair progress must disclose this baseline and distinguish new work completed during the September–October competition. See the readiness document for the milestone gates and manual two-wallet checklist. Report actual tester feedback and transaction evidence; do not treat design documents as completed features.
+The first prototype was committed in July 2026. The September–October Crypto World's Fair work added the current closure/recovery behavior, replacement devnet deployment, owner and beneficiary flow improvements, and History/recovery UI. See the commit history and linked transaction evidence for the implementation record.
